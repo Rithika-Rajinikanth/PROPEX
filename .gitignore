@@ -1,0 +1,68 @@
+# =============================================================================
+# PropX Dubai - Comprehensive .gitignore
+# =============================================================================
+
+# Environment & Secret variables
+.env
+.env.*
+!.env.example
+
+# Python & Virtual Environments
+venv/
+**/venv/
+.venv/
+**/.venv/
+env/
+**/env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+**/.pytest_cache/
+
+# Rust & Cargo
+target/
+**/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Node.js & Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+**/out/
+dist/
+**/dist/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Database Dumps, Backups & Large Binary Archives
+*.dump
+**/*.dump
+*.sql.gz
+**/*.sql.gz
+*.tar.gz
+**/*.tar.gz
+*.zip
+**/*.zip
+*.rar
+*.7z
+*.bak
+*.log
+**/*.log
+cargo_build.log
+build_errors.txt
+transferring
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
