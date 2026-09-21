@@ -21,6 +21,7 @@ __pycache__/
 *.so
 .pytest_cache/
 **/.pytest_cache/
+ml_service/pgvector/
 
 # Rust & Cargo
 target/

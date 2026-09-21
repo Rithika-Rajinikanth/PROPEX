@@ -1,9 +1,8 @@
-// src/components/search/SearchFilters.tsx
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -24,50 +23,64 @@ export function SearchFilters({ query, onChange }: SearchFiltersProps) {
     onChange({ ...query, ...updates, offset: 0 });
   };
 
-  return (
-    <Card className="p-6 space-y-4">
-      <h2 className="text-lg font-semibold">Filters</h2>
+  const resetFilters = () => {
+    onChange({
+      limit: 20,
+      offset: 0,
+    });
+  };
 
-      <div className="space-y-2">
-        <Label>Location</Label>
-        <Input
-          placeholder="City or region name"
-          value={query.location || ''}
-          onChange={(e) => updateQuery({ location: e.target.value || undefined })}
-        />
+  return (
+    <Card className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Filters</h2>
+        <Button variant="ghost" size="sm" onClick={resetFilters}>
+          Reset All
+        </Button>
       </div>
 
+      {/* State Filter */}
       <div className="space-y-2">
         <Label>State</Label>
         <Select
-          value={query.state || ''}
-          onValueChange={(value) => updateQuery({ state: value || undefined })}
+          value={query.state || 'all'}
+          onValueChange={(value) => updateQuery({ state: value === 'all' ? undefined : value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select state" />
+            <SelectValue placeholder="All States" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All States</SelectItem>
+            {/* ✅ FIX: Changed from "" to "all" */}
+            <SelectItem value="all">All States</SelectItem>
             <SelectItem value="CA">California</SelectItem>
             <SelectItem value="TX">Texas</SelectItem>
             <SelectItem value="NY">New York</SelectItem>
             <SelectItem value="FL">Florida</SelectItem>
             <SelectItem value="IL">Illinois</SelectItem>
+            <SelectItem value="PA">Pennsylvania</SelectItem>
+            <SelectItem value="OH">Ohio</SelectItem>
+            <SelectItem value="MA">Massachusetts</SelectItem>
+            <SelectItem value="WA">Washington</SelectItem>
+            <SelectItem value="CT">Connecticut</SelectItem>
+            <SelectItem value="WI">Wisconsin</SelectItem>
+            <SelectItem value="MI">Michigan</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
+      {/* Region Type */}
       <div className="space-y-2">
         <Label>Region Type</Label>
         <Select
-          value={query.region_type || ''}
-          onValueChange={(value) => updateQuery({ region_type: value || undefined })}
+          value={query.region_type || 'all'}
+          onValueChange={(value) => updateQuery({ region_type: value === 'all' ? undefined : value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select type" />
+            <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            {/* ✅ FIX: Changed from "" to "all" */}
+            <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="city">City</SelectItem>
             <SelectItem value="metro">Metro</SelectItem>
             <SelectItem value="county">County</SelectItem>
@@ -76,58 +89,38 @@ export function SearchFilters({ query, onChange }: SearchFiltersProps) {
         </Select>
       </div>
 
+      {/* Price Range */}
       <div className="space-y-2">
         <Label>Price Range</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex gap-2">
           <Input
             type="number"
             placeholder="Min"
             value={query.price_min || ''}
-            onChange={(e) =>
-              updateQuery({
-                price_min: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
+            onChange={(e) => updateQuery({ price_min: e.target.value ? Number(e.target.value) : undefined })}
           />
           <Input
             type="number"
             placeholder="Max"
             value={query.price_max || ''}
-            onChange={(e) =>
-              updateQuery({
-                price_max: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
+            onChange={(e) => updateQuery({ price_max: e.target.value ? Number(e.target.value) : undefined })}
           />
         </div>
       </div>
 
+      {/* Heat Index */}
       <div className="space-y-2">
-        <Label>Min Heat Index</Label>
+        <Label>Minimum Heat Index</Label>
         <Input
           type="number"
           placeholder="0-100"
           value={query.heat_index_min || ''}
-          onChange={(e) =>
-            updateQuery({
-              heat_index_min: e.target.value ? Number(e.target.value) : undefined,
-            })
-          }
+          onChange={(e) => updateQuery({ heat_index_min: e.target.value ? Number(e.target.value) : undefined })}
         />
+        <p className="text-xs text-muted-foreground">
+          Higher heat index = more active market
+        </p>
       </div>
-
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() =>
-          onChange({
-            limit: 20,
-            offset: 0,
-          })
-        }
-      >
-        Reset Filters
-      </Button>
     </Card>
   );
 }

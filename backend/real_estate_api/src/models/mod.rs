@@ -1,4 +1,6 @@
-// src/models/mod.rs - FIXED TYPE MAPPINGS
+// src/models/mod.rs - COMPLETE FIXED VERSION
+
+pub mod propx;
 
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
@@ -20,6 +22,7 @@ pub struct RegionMetrics {
     pub region_id: i32,
     pub region_name: String,
     pub state_name: String,
+    pub region_type: Option<String>,
     pub current_value: Option<f64>,      // FLOAT8 from view
     pub median_list_price: Option<f64>,  // FLOAT8 from view
     pub median_sale_price: Option<f64>,  // FLOAT8 from view
@@ -50,6 +53,8 @@ pub struct SearchQuery {
     #[validate(range(min = 0.0))]
     pub price_max: Option<f64>,
     pub heat_index_min: Option<f64>,
+    #[validate(range(min = 0))]          // ← add this
+    pub inventory_min: Option<i64>, 
     #[validate(range(min = 1, max = 100))]
     pub limit: Option<i64>,
     #[validate(range(min = 0))]
@@ -133,20 +138,23 @@ pub struct Claims {
     pub exp: usize,
 }
 
+// ✅ FIX 1: Use chrono::NaiveDate instead of sqlx::types::time::Date
+// ✅ FIX 2: Add utoipa::ToSchema derive macro
 #[derive(Debug, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct MarketTrendData {
-    pub date: NaiveDate,
-    pub avg_value: f64,  // FLOAT8 - matches AVG() output
-    pub region_count: i64,
+    pub date: NaiveDate,            // ✅ Changed from sqlx::types::time::Date
+    pub avg_value: f64,             // CAST(AVG(...) AS FLOAT8)
+    pub region_count: i64,          // COUNT(*)::BIGINT
 }
 
+// ✅ FIX: Add utoipa::ToSchema derive macro
 #[derive(Debug, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct HeatmapData {
     pub region_id: i32,
     pub region_name: String,
     pub state_name: String,
-    pub heat_index: Option<f64>,    // FLOAT8 from view
-    pub current_value: Option<f64>, // FLOAT8 from view
+    pub heat_index: f64,        // CAST(... AS FLOAT8)
+    pub current_value: f64,     // CAST(... AS FLOAT8)
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]

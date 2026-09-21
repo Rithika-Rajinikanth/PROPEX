@@ -1,23 +1,26 @@
 [package]
 name = "real_estate_api"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 # Web framework
-axum = "0.8.8"
-# Cargo.toml
+axum = { version = "0.8.8", features = ["ws"] }
 async-trait = "0.1"
-
 erased-serde = "0.4"
 tokio = { version = "1", features = ["full"] }
 tower = "0.5.3"
-tower-http = { version = "0.6.8", features = ["fs", "trace", "cors","compression-gzip", "catch-panic"] }
+tower-http = { version = "0.6.8", features = ["fs", "trace", "cors", "compression-gzip", "catch-panic"] }
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono", "migrate", ] }
+# CHANGED: runtime-tokio-rustls → runtime-tokio-native-tls
+# This makes sqlx use native-tls (OpenSSL) instead of rustls,
+# so there is zero rustls involvement from sqlx.
+# fred handles Redis TLS via rustls-ring exclusively — no conflict.
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "postgres", "macros", "chrono", "migrate", "uuid", "rust_decimal"] }
+uuid = { version = "1.10", features = ["serde", "v4"] }
 rust_decimal = { version = "1.33", features = ["serde"] }
-
+native-tls = "0.2"
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -28,8 +31,19 @@ chrono = { version = "0.4", features = ["serde"] }
 # Validation
 validator = { version = "0.20.0", features = ["derive"] }
 
-# Caching
-redis = { version = "1.0.2", features = ["tokio-comp", "connection-manager"] }
+# Caching — fred with ring backend only.
+# ring is the sole rustls crypto provider in this binary.
+# sqlx no longer uses rustls (switched to native-tls above),
+# so there is exactly ONE rustls crypto provider: ring. No more panic.
+fred = { version = "9", features = ["enable-rustls-ring"] }
+
+# Explicitly pin ring so cargo resolves a single version across fred + reqwest
+ring = "0.17"
+
+# rustls must be an explicit dependency so main.rs can call
+# rustls::crypto::ring::default_provider().install_default()
+# The ring feature ensures we use the ring crypto backend (same as fred)
+rustls = { version = "0.23", features = ["ring"] }
 
 # Authentication & Security
 jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
@@ -49,19 +63,17 @@ anyhow = "1.0"
 thiserror = "2.0.18"
 
 # API Documentation
-utoipa = { version = "5.4.0", features = ["axum_extras", "chrono"] }
+utoipa = { version = "5.4.0", features = ["axum_extras", "chrono", "uuid", "decimal"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 
-# HTTP Client (for external APIs)
+# HTTP Client — default-features already includes rustls (ring-based) in 0.13.x.
+# We disable nothing — just add json. The ring provider installed in main()
+# covers reqwest's TLS too since it's the same rustls instance.
 reqwest = { version = "0.13.1", features = ["json"] }
 
-# UUID (not used in database - removed from queries)
-# uuid = { version = "1.0", features = ["v4", "serde"] }
-
-# Regex for text processing
+# Regex
 regex = "1.10"
-rustls = "0.22"
-webpki = "0.22"
+sha2 = "0.10"
 
 tower_governor = "0.8.0"
 

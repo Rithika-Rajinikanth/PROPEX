@@ -1,3 +1,5 @@
+// src/error.rs
+
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -24,8 +26,9 @@ pub enum AppError {
     #[error(transparent)]
     Validation(#[from] validator::ValidationErrors),
 
+    // FIXED: was redis::RedisError — redis crate removed, using fred now
     #[error(transparent)]
-    Redis(#[from] redis::RedisError),
+    Redis(#[from] fred::error::RedisError),
 
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
@@ -36,11 +39,12 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        // 🔥 LOG THE REAL ERROR
         tracing::error!("AppError occurred: {:?}", self);
 
         let (status, msg) = match &self {
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
+            AppError::Validation(errs) => (StatusCode::BAD_REQUEST, errs.to_string()),
+            AppError::SerializationError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
             AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Not found".into()),
             AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),

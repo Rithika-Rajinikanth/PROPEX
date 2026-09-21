@@ -1,6 +1,35 @@
-fastapi
-uvicorn
-pandas
-numpy
-scikit-learn
+
+# ml_service/requirements.txt
+# CPU-only torch keeps the image ~600 MB instead of 3 GB (no GPU needed on Azure)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+
+torch==2.2.2+cpu
+
 joblib
+# Core framework
+fastapi==0.110.0
+uvicorn==0.29.0
+
+# ML and embeddings
+numpy==1.26.4
+scikit-learn==1.4.1.post1
+sentence-transformers==2.6.1
+
+# Database
+psycopg2-binary==2.9.9
+pandas==2.2.3           # ✅ ADD THIS
+
+# Caching
+redis==5.0.3
+
+# Utilities
+pydantic==2.6.4
+python-dotenv==1.0.1
+tqdm==4.66.2
+requests==2.31.0
+
+# Logging (built-in, no extra package needed)
+
+# Testing
+pytest==8.1.1

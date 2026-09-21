@@ -1,13 +1,13 @@
 use axum::{extract::State, routing::post, Json, Router};
 use std::sync::Arc;
-
+use crate::services::rag::RagService;
 use crate::{
     error::AppError,
     models::{
         ChatRequest, ChatResponse, PricePredictionRequest, PricePredictionResponse,
         RecommendationRequest, RecommendationResponse,
     },
-    services::{ai::AiService, recommendation::RecommendationService},
+    services::recommendation::RecommendationService,
     AppState,
 };
 
@@ -27,15 +27,15 @@ pub fn routes() -> Router<Arc<AppState>> {
     )
 )]
 pub async fn chat(
-    State(_state): State<Arc<AppState>>,
+    State(state): State<Arc<AppState>>,
     Json(req): Json<ChatRequest>,
 ) -> Result<Json<ChatResponse>, AppError> {
-    let ai_service = AiService::new();
-    
-    // anyhow::Error automatically converts to AppError via From trait
-    let response = ai_service
-        .process_chat(&1, &req.message, req.context)
-        .await?;
+    let rag_service = RagService::new(state.db.clone())?;
+
+    let response = rag_service
+        .process_query(&req.message, req.context)
+        .await
+        .map_err(|e| AppError::Internal(e.to_string()))?;
 
     Ok(Json(response))
 }
@@ -79,16 +79,29 @@ pub async fn predict_price(
     State(_state): State<Arc<AppState>>,
     Json(req): Json<PricePredictionRequest>,
 ) -> Result<Json<PricePredictionResponse>, AppError> {
-    let ai_service = AiService::new();
+    let ml_url = std::env::var("ML_SERVICE_URL")
+        .unwrap_or_else(|_| "https://ml-service.salmonsky-439a40bf.eastasia.azurecontainerapps.io".to_string());
 
-    // anyhow::Error automatically converts to AppError via From trait
-    let prediction = ai_service
-        .predict_price(
-            req.region_id,
-            req.historical_prices,
-            req.months_ahead.unwrap_or(3),
-        )
-        .await?;
+    let client = reqwest::Client::new();
+
+    let response = client
+        .post(format!("{}/predict", ml_url))
+        .json(&req)
+        .timeout(std::time::Duration::from_secs(30))
+        .send()
+        .await
+        .map_err(|e| AppError::Internal(format!("ML service request failed: {}", e)))?;
+
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response.text().await.unwrap_or_default();
+        return Err(AppError::Internal(format!("ML service error {}: {}", status, body)));
+    }
+
+    let prediction: PricePredictionResponse = response
+        .json()
+        .await
+        .map_err(|e| AppError::Internal(format!("ML service response parse failed: {}", e)))?;
 
     Ok(Json(prediction))
 }

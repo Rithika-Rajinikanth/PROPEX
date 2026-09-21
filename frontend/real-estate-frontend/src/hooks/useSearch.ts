@@ -12,16 +12,3 @@ export function useSearch(query: SearchQuery) {
   });
 }
 
-export function useMarketTrends(params?: { state?: string; limit?: number }) {
-  return useQuery({
-    queryKey: ['market-trends', params],
-    queryFn: () => api.getMarketTrends(params),
-  });
-}
-
-export function useHeatmap() {
-  return useQuery({
-    queryKey: ['heatmap'],
-    queryFn: () => api.getHeatmap(),
-  });
-}

@@ -1,26 +1,38 @@
 export interface Region {
   id: number;
   region_name: string;
-  region_type: string;
   state_name: string;
-  created_at: string;
+  region_type: string;
+  created_at?: string;
+  current_value?: number;
+  median_list_price?: number;
+  median_sale_price?: number;
+  inventory?: number;
+  new_listings?: number;
+  sales_count?: number;
+  days_to_pending?: number;
+  days_to_close?: number;
+  heat_index?: number;
+  affordability_ratio?: number;
+  last_updated?: string;
 }
 
 export interface RegionMetrics {
   region_id: number;
   region_name: string;
   state_name: string;
-  current_value: number | null;
-  median_list_price: number | null;
-  median_sale_price: number | null;
-  inventory: number | null;
-  new_listings: number | null;
-  sales_count: number | null;
-  days_to_pending: number | null;
-  days_to_close: number | null;
-  heat_index: number | null;
-  affordability_ratio: number | null;
-  last_updated: string | null;
+  region_type?: string;
+  current_value?: number | null;
+  median_list_price?: number | null;
+  median_sale_price?: number| null;
+  inventory?: number | null;
+  new_listings?: number | null;
+  sales_count?: number | null;
+  days_to_pending?: number | null;
+  days_to_close?: number | null;
+  heat_index?: number | null;
+  affordability_ratio?: number | null;
+  last_updated?: string | null;
 }
 
 export interface MarketTrend {
@@ -30,28 +42,28 @@ export interface MarketTrend {
 }
 
 export interface SearchQuery {
-  location?: string;
   state?: string;
+  location?: string;
   region_type?: string;
   price_min?: number;
   price_max?: number;
   heat_index_min?: number;
+  inventory_min?: number;
   limit?: number;
   offset?: number;
 }
 
 export interface SearchResult {
+  results: RegionMetrics[];
   total: number;
   page: number;
   page_size: number;
-  results: RegionMetrics[];
 }
 
 export interface User {
   id: number;
   email: string;
-  name: string;
-  preferences: any;
+  name?: string;
 }
 
 export interface AuthResponse {
@@ -68,17 +80,23 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  name?: string;
 }
 
 export interface ChatMessage {
-  role: string;
+  id: string;
+  role: 'user' | 'assistant';
   content: string;
+  suggestions?: string[];
+  timestamp: Date;
 }
 
 export interface ChatRequest {
   message: string;
-  context?: ChatMessage[];
+  context?: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+  }>;
 }
 
 export interface ChatResponse {
@@ -87,28 +105,41 @@ export interface ChatResponse {
 }
 
 export interface MarketTrendData {
+  state: string;
+  median_sale_price: number;
+  heat_index?: number;
+  inventory?: number;
+}
+
+export interface HeatmapData {
+  region_id?: number;
+  region_name?: string;
+  state?: string;
+  heat_index?: number;
+  median_sale_price?: number;
+  inventory?: number;
+  new_listings?: number;
+}
+
+export interface PricePredictionRequest {
+  region_id: number;
+}
+
+export interface PricePredictionResponse {
+  predicted_price: number;
+  confidence: number;
+}
+
+export interface BackendTrendData {
   date: string;
   avg_value: number;
   region_count: number;
 }
 
-export interface HeatmapData {
+export interface BackendHeatmapData {
   region_id: number;
   region_name: string;
   state_name: string;
   heat_index: number | null;
   current_value: number | null;
-}
-
-export interface PricePredictionRequest {
-  region_id: number;
-  months_ahead?: number;
-}
-
-export interface PricePredictionResponse {
-  region_id: number;
-  current_price: number | null;
-  predicted_price: number | null;
-  confidence: number;
-  factors: string[];
 }

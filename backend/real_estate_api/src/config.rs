@@ -10,6 +10,7 @@ pub struct Config {
     pub jwt_secret: String,
     pub jwt_expiry: i64,
     pub openai_api_key: Option<String>,
+    pub ml_service_url: String,
     pub environment: Environment,
 }
 
@@ -38,6 +39,8 @@ impl Config {
                 .unwrap_or_else(|_| "24".to_string())
                 .parse()?,
             openai_api_key: env::var("OPENAI_API_KEY").ok(),
+            ml_service_url: env::var("ML_SERVICE_URL")
+                .unwrap_or_else(|_| "http://127.0.0.1:8000".to_string()),
             environment: env::var("ENVIRONMENT")
                 .unwrap_or_else(|_| "development".to_string())
                 .parse()

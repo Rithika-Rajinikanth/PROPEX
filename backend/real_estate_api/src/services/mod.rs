@@ -1,4 +1,7 @@
 // src/services/mod.rs
 
-pub mod ai;
+pub mod embedding;
+pub mod rag;  
+pub mod external_data;
 pub mod recommendation;
+pub mod exchange;
