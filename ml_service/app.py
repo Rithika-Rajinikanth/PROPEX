@@ -169,16 +169,19 @@ except Exception as e:
 # PYDANTIC MODELS
 # ============================================================================
 
+
 class ANNSearchRequest(BaseModel):
     query_text: Optional[str] = None
     query_vector: Optional[List[float]] = None
     k: int = 5
+
 
 class ANNRecommendRequest(BaseModel):
     budget_max: Optional[float] = None
     preferred_district: Optional[str] = None
     min_yield: Optional[float] = None
     k: int = 5
+
 
 class DeedVerificationRequest(BaseModel):
     title_deed_number: Optional[str] = None
@@ -192,52 +195,64 @@ class DeedVerificationRequest(BaseModel):
     deed_text: Optional[str] = None
     raw_features: Optional[List[float]] = None
 
+
 class IdentityVerificationRequest(BaseModel):
     emirates_id_embedding: Optional[List[float]] = None
     id_photo_embedding: Optional[List[float]] = None
     selfie_embedding: List[float]
     threshold: Optional[float] = 0.85
 
+
 class TransliterationRequest(BaseModel):
     arabic_name: str
     english_name: Optional[str] = None
+
 
 class SLMGenerateRequest(BaseModel):
     prompt: str
     context: Optional[str] = None
 
+
 class SLMCriteriaRequest(BaseModel):
     query: Optional[str] = None
     prompt: Optional[str] = None
 
+
 class EmbedRequest(BaseModel):
     text: str
 
+
 class BatchEmbedRequest(BaseModel):
     texts: List[str]
+
 
 class EmbedResponse(BaseModel):
     embedding: List[float]
     dimensions: int
     model: str
 
+
 class BatchEmbedResponse(BaseModel):
     embeddings: List[List[float]]
     count: int
     dimensions: int
 
+
 class SimilarityRequest(BaseModel):
     text1: str
     text2: str
+
 
 class SimilarityResponse(BaseModel):
     similarity: float
     interpretation: str
 
+
 class PredictionRequest(BaseModel):
     region_id: int
     historical_prices: List[float]
     months_ahead: int = 3
+
 
 class PredictionResponse(BaseModel):
     region_id: int
@@ -247,6 +262,7 @@ class PredictionResponse(BaseModel):
     factors: List[str]
     trend: str
 
+
 class ExternalDataRequest(BaseModel):
     region_name: str
     state: str
@@ -254,6 +270,7 @@ class ExternalDataRequest(BaseModel):
 # ============================================================================
 # HEALTH CHECK
 # ============================================================================
+
 
 @app.get("/")
 def root():
@@ -270,6 +287,7 @@ def root():
         }
     }
 
+
 @app.get("/health")
 def health_check():
     return {
@@ -284,6 +302,7 @@ def health_check():
 # ============================================================================
 # EMBEDDING ENDPOINTS
 # ============================================================================
+
 
 @app.post("/embed", response_model=EmbedResponse)
 async def generate_embedding(request: EmbedRequest):
@@ -311,6 +330,7 @@ async def generate_embedding(request: EmbedRequest):
         logger.error(f"❌ Embedding failed: {e}")
         raise HTTPException(status_code=500, detail=f"Embedding generation failed: {str(e)}")
 
+
 @app.post("/embed_batch", response_model=BatchEmbedResponse)
 async def generate_batch_embeddings(request: BatchEmbedRequest):
     try:
@@ -336,6 +356,7 @@ async def generate_batch_embeddings(request: BatchEmbedRequest):
     except Exception as e:
         logger.error(f"❌ Batch embedding failed: {e}")
         raise HTTPException(status_code=500, detail=f"Batch embedding failed: {str(e)}")
+
 
 @app.post("/similarity", response_model=SimilarityResponse)
 async def calculate_similarity(request: SimilarityRequest):
@@ -365,6 +386,7 @@ async def calculate_similarity(request: SimilarityRequest):
 # ============================================================================
 # PREDICTION ENDPOINT
 # ============================================================================
+
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_price(request: PredictionRequest):
@@ -428,6 +450,7 @@ async def predict_price(request: PredictionRequest):
 # EXTERNAL DATA ENDPOINTS
 # ============================================================================
 
+
 @app.post("/external/redfin")
 async def get_redfin_data(request: ExternalDataRequest):
     if not external_data:
@@ -440,6 +463,7 @@ async def get_redfin_data(request: ExternalDataRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/external/crime")
 async def get_crime_data(request: ExternalDataRequest):
     if not external_data:
@@ -451,6 +475,7 @@ async def get_crime_data(request: ExternalDataRequest):
         return {"status": "success", "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/external/combined")
 async def get_combined_data(request: ExternalDataRequest):
@@ -466,6 +491,7 @@ async def get_combined_data(request: ExternalDataRequest):
 # UTILITY ENDPOINTS
 # ============================================================================
 
+
 @app.post("/clear_cache")
 async def clear_cache(pattern: str = "*"):
     if not redis_client:
@@ -477,6 +503,7 @@ async def clear_cache(pattern: str = "*"):
         return {"cleared": len(keys), "pattern": pattern}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/stats")
 async def get_stats():
@@ -496,13 +523,14 @@ async def get_stats():
                 "keys": redis_client.dbsize(),
                 "memory_used_mb": round(info.get("used_memory", 0) / 1024 / 1024, 2)
             }
-        except:
+        except Exception:
             pass
     return stats
 
 # ============================================================================
 # HNSW APPROXIMATE NEAREST NEIGHBORS (ANN) ENDPOINTS
 # ============================================================================
+
 
 @app.post("/ann/search")
 async def ann_search(request: ANNSearchRequest):
@@ -534,6 +562,7 @@ async def ann_search(request: ANNSearchRequest):
     except Exception as e:
         logger.error(f"❌ HNSW search failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/ann/recommend")
 async def ann_recommend(request: ANNRecommendRequest):
@@ -571,6 +600,7 @@ async def ann_recommend(request: ANNRecommendRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/ann/stats")
 async def ann_stats():
     st = hnsw_indexer.get_stats()
@@ -580,6 +610,7 @@ async def ann_stats():
 # ============================================================================
 # MULTI-MODEL AI FRAUD DETECTION ENDPOINTS
 # ============================================================================
+
 
 @app.post("/fraud/verify-deed")
 async def verify_deed(request: DeedVerificationRequest):
@@ -608,6 +639,7 @@ async def verify_deed(request: DeedVerificationRequest):
         logger.error(f"❌ Deed verification failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/fraud/verify-identity")
 async def verify_identity(request: IdentityVerificationRequest):
     """Siamese Network: Few-shot identity verification comparing Emirates ID vs Selfie."""
@@ -621,6 +653,7 @@ async def verify_identity(request: IdentityVerificationRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/fraud/transliterate-name")
 async def transliterate_name(request: TransliterationRequest):
@@ -637,6 +670,7 @@ async def transliterate_name(request: TransliterationRequest):
 # LOCAL SLM (SMALL LANGUAGE MODEL) & CRITERIA EXTRACTION
 # ============================================================================
 
+
 @app.post("/slm/generate")
 async def slm_generate(request: SLMGenerateRequest):
     """Zero-cloud local SLM generation for market telemetry and investment synthesis."""
@@ -644,6 +678,7 @@ async def slm_generate(request: SLMGenerateRequest):
         return slm_engine.generate_response(prompt=request.prompt, context=request.context)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/slm/extract_criteria")
 async def slm_extract_criteria(request: SLMCriteriaRequest):
@@ -657,6 +692,7 @@ async def slm_extract_criteria(request: SLMCriteriaRequest):
 # ============================================================================
 # ANALYTICS MARKET MOMENTUM SIGNALS & PROFIT FORECAST
 # ============================================================================
+
 
 @app.get("/analytics/signals")
 async def get_market_signals():
@@ -739,6 +775,7 @@ async def get_market_signals():
         "timestamp": datetime.now().isoformat(),
         "signals": signals
     }
+
 
 @app.on_event("startup")
 async def startup_event():

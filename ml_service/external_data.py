@@ -2,7 +2,6 @@
 
 import os
 import pandas as pd
-from datetime import datetime
 from typing import Dict, Optional
 import redis
 import json
@@ -123,7 +122,7 @@ class ExternalDataService:
         try:
             if val and val != '' and str(val).lower() != 'nan':
                 return float(val)
-        except:
+        except Exception:
             pass
         return None
 
@@ -131,7 +130,7 @@ class ExternalDataService:
         try:
             if val and val != '' and str(val).lower() != 'nan':
                 return int(float(val))
-        except:
+        except Exception:
             pass
         return None
 

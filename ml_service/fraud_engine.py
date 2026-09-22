@@ -20,11 +20,13 @@ logger = logging.getLogger(__name__)
 # 1. DEEP TITLE DEED AUTOENCODER (Reconstruction Anomaly Detection)
 # ============================================================================
 
+
 class DeedAutoencoder(nn.Module):
     """
     Compresses authentic DLD title deeds into a tight 32-dim latent space.
     Tampered documents produce high reconstruction loss (MSE > threshold).
     """
+
     def __init__(self, input_dim: int = 384, latent_dim: int = 32):
         super(DeedAutoencoder, self).__init__()
         self.encoder = nn.Sequential(
@@ -51,11 +53,13 @@ class DeedAutoencoder(nn.Module):
 # 2. PATCHGAN DISCRIMINATOR (Structural/Pixel Patch Anomaly Detector)
 # ============================================================================
 
+
 class PatchGANDiscriminator(nn.Module):
     """
     Evaluates document visual/text layout in local patches (70x70 windows).
     Photoshop edits and altered fonts create high-frequency noise spikes.
     """
+
     def __init__(self, in_channels: int = 1, num_filters: int = 32):
         super(PatchGANDiscriminator, self).__init__()
         self.net = nn.Sequential(
@@ -74,6 +78,7 @@ class PatchGANDiscriminator(nn.Module):
 # ============================================================================
 # 3. UNIFIED FRAUD DETECTION ENGINE
 # ============================================================================
+
 
 class AIFraudEngine:
     def __init__(self, embedding_model=None):
@@ -125,7 +130,7 @@ class AIFraudEngine:
         """
         # 1. Check Makani and Plot Number rules first (Dubai standard is 10 digits)
         is_valid_makani = bool(re.match(r"^\d{10}$", makani_number.strip()))
-        
+
         # 2. Extract or generate feature vector
         if raw_features and len(raw_features) == 384:
             feature_vec = np.array(raw_features, dtype=np.float32)
@@ -141,7 +146,8 @@ class AIFraudEngine:
             recon_error = float(nn.functional.mse_loss(x_tensor, recon_tensor).item())
 
         # If Makani is invalid or deed mentions tampered markers, amplify reconstruction error
-        is_tampered_text = any(term in deed_text.lower() for term in ["photoshop", "forged", "altered", "fake", "manipulated"])
+        is_tampered_text = any(term in deed_text.lower()
+                               for term in ["photoshop", "forged", "altered", "fake", "manipulated"])
         if not is_valid_makani or is_tampered_text:
             recon_error += 0.25
 
@@ -159,13 +165,16 @@ class AIFraudEngine:
 
         anomalies_detected = []
         if recon_error > threshold_mse:
-            anomalies_detected.append(f"Autoencoder Reconstruction Error {recon_error:.4f} exceeded baseline threshold {threshold_mse:.4f} (structural tampering detected)")
+            anomalies_detected.append(
+                f"Autoencoder Reconstruction Error {recon_error:.4f} exceeded baseline threshold {threshold_mse:.4f} (structural tampering detected)")
         if not is_valid_makani:
             anomalies_detected.append(f"Makani number '{makani_number}' failed 10-digit DLD geographic checksum")
         if is_tampered_text:
-            anomalies_detected.append("Deep textual heuristic flagged explicit forgery/tampering markers in title deed text")
+            anomalies_detected.append(
+                "Deep textual heuristic flagged explicit forgery/tampering markers in title deed text")
         if patch_authenticity_score < 0.35:
-            anomalies_detected.append("PatchGAN flagged high-frequency pixel editing noise in title deed header/seal patch")
+            anomalies_detected.append(
+                "PatchGAN flagged high-frequency pixel editing noise in title deed header/seal patch")
 
         return {
             "is_fraudulent": is_fraudulent,
@@ -193,8 +202,10 @@ class AIFraudEngine:
         # Normalize
         norm1 = np.linalg.norm(emb1)
         norm2 = np.linalg.norm(emb2)
-        if norm1 > 0: emb1 = emb1 / norm1
-        if norm2 > 0: emb2 = emb2 / norm2
+        if norm1 > 0:
+            emb1 = emb1 / norm1
+        if norm2 > 0:
+            emb2 = emb2 / norm2
 
         euclidean_dist = float(np.linalg.norm(emb1 - emb2))
         cosine_sim = float(np.dot(emb1, emb2))

@@ -8,9 +8,10 @@ Provides:
 
 import re
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class LocalSLMEngine:
     def __init__(self):
@@ -20,7 +21,7 @@ class LocalSLMEngine:
     def extract_search_criteria(self, query: str) -> Dict[str, Any]:
         """Local SLM criteria extraction using rule-augmented semantic parsing."""
         q_lower = query.lower()
-        
+
         # 1. Location detection (Dubai districts)
         location = None
         if "palm" in q_lower or "jumeirah" in q_lower:
@@ -39,22 +40,26 @@ class LocalSLMEngine:
         # 2. Price extraction
         price_max = None
         price_min = None
-        
+
         # Matches patterns like "under 500k", "under 1m", "500000 aed"
         under_match = re.search(r"(?:under|below|less than|max)\s*(\d+(?:\.\d+)?)\s*(k|m|million)?", q_lower)
         if under_match:
             val = float(under_match.group(1))
             unit = under_match.group(2)
-            if unit == "k": val *= 1000
-            elif unit in ["m", "million"]: val *= 1000000
+            if unit == "k":
+                val *= 1000
+            elif unit in ["m", "million"]:
+                val *= 1000000
             price_max = val
 
         above_match = re.search(r"(?:above|over|more than|min)\s*(\d+(?:\.\d+)?)\s*(k|m|million)?", q_lower)
         if above_match:
             val = float(above_match.group(1))
             unit = above_match.group(2)
-            if unit == "k": val *= 1000
-            elif unit in ["m", "million"]: val *= 1000000
+            if unit == "k":
+                val *= 1000
+            elif unit in ["m", "million"]:
+                val *= 1000000
             price_min = val
 
         # 3. Property Type

@@ -15,6 +15,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class HNSWANNIndexer:
     def __init__(self, dim: int = 384, max_elements: int = 10000, ef_construction: int = 200, M: int = 16):
         self.dim = dim
@@ -31,7 +32,8 @@ class HNSWANNIndexer:
             self.index = hnswlib.Index(space='cosine', dim=self.dim)
             self.index.init_index(max_elements=self.max_elements, ef_construction=self.ef_construction, M=self.M)
             self.index.set_ef(50)  # query time accuracy vs speed tradeoff
-            logger.info(f"✅ HNSW Index initialized: dim={self.dim}, space=cosine, M={self.M}, ef_construction={self.ef_construction}")
+            logger.info(
+                f"✅ HNSW Index initialized: dim={self.dim}, space=cosine, M={self.M}, ef_construction={self.ef_construction}")
         except Exception as e:
             logger.error(f"❌ Failed to initialize HNSW index: {e}")
             raise
@@ -53,7 +55,7 @@ class HNSWANNIndexer:
         """Batch add items into HNSW index."""
         if not vectors:
             return []
-        
+
         vecs = np.array(vectors, dtype=np.float32)
         norms = np.linalg.norm(vecs, axis=1, keepdims=True)
         norms[norms == 0] = 1.0
@@ -83,7 +85,7 @@ class HNSWANNIndexer:
             q_vec = q_vec / norm
 
         labels, distances = self.index.knn_query(q_vec, k=k)
-        
+
         results = []
         for label, dist in zip(labels[0], distances[0]):
             meta = self.id_to_metadata.get(int(label), {}).copy()
