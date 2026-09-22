@@ -9,8 +9,7 @@ use validator::Validate;
 use crate::{
     error::AppError,
     models::{
-        AuthResponse, Claims, LoginRequest, RefreshTokenRequest, RegisterRequest, User,
-        UserProfile,
+        AuthResponse, Claims, LoginRequest, RefreshTokenRequest, RegisterRequest, User, UserProfile,
     },
     AppState,
 };
@@ -46,15 +45,15 @@ pub async fn register(
     req.validate()?;
 
     // Check if user already exists
-    let existing = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM users WHERE email = $1",
-    )
-    .bind(&req.email)
-    .fetch_one(state.db.pool())
-    .await?;
+    let existing = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM users WHERE email = $1")
+        .bind(&req.email)
+        .fetch_one(state.db.pool())
+        .await?;
 
     if existing > 0 {
-        return Err(AppError::BadRequest("User with this email already exists".into()));
+        return Err(AppError::BadRequest(
+            "User with this email already exists".into(),
+        ));
     }
 
     // Hash password
@@ -141,12 +140,15 @@ pub async fn login(
     let user_row = match maybe_user {
         Some(row) => {
             // Check password
-            let valid = if row.password_hash.starts_with("$2") && !row.password_hash.contains("dummy") {
-                verify(&req.password, &row.password_hash).unwrap_or(false)
-            } else {
-                // Seeded demo account or sandbox fallback
-                req.password == "password123" || req.password == "demo123" || req.password.len() >= 8
-            };
+            let valid =
+                if row.password_hash.starts_with("$2") && !row.password_hash.contains("dummy") {
+                    verify(&req.password, &row.password_hash).unwrap_or(false)
+                } else {
+                    // Seeded demo account or sandbox fallback
+                    req.password == "password123"
+                        || req.password == "demo123"
+                        || req.password.len() >= 8
+                };
 
             if !valid {
                 return Err(AppError::Unauthorized("Invalid credentials".into()));

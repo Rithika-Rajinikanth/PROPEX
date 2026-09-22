@@ -94,7 +94,10 @@ pub async fn get_market_trends(
 
         if let Ok(trends) = result {
             if !trends.is_empty() {
-                tracing::info!("Retrieved {} market trend data points from DB", trends.len());
+                tracing::info!(
+                    "Retrieved {} market trend data points from DB",
+                    trends.len()
+                );
                 return Ok(Json(trends));
             }
         }
@@ -164,7 +167,10 @@ pub async fn get_market_trends(
         },
     ];
 
-    tracing::info!("Returning {} Dubai prime market trend points", dubai_trends.len());
+    tracing::info!(
+        "Returning {} Dubai prime market trend points",
+        dubai_trends.len()
+    );
     Ok(Json(dubai_trends))
 }
 
@@ -325,7 +331,10 @@ pub async fn get_heatmap(
         },
     ];
 
-    tracing::info!("Returning {} Dubai prime heatmap points", dubai_heatmap.len());
+    tracing::info!(
+        "Returning {} Dubai prime heatmap points",
+        dubai_heatmap.len()
+    );
     Ok(Json(dubai_heatmap))
 }
 
@@ -342,7 +351,12 @@ pub async fn get_market_signals(
     let ml_url = format!("{}/analytics/signals", state.config.ml_service_url);
     let client = reqwest::Client::new();
 
-    if let Ok(res) = client.get(&ml_url).timeout(std::time::Duration::from_millis(1500)).send().await {
+    if let Ok(res) = client
+        .get(&ml_url)
+        .timeout(std::time::Duration::from_millis(1500))
+        .send()
+        .await
+    {
         if res.status().is_success() {
             if let Ok(json_data) = res.json::<serde_json::Value>().await {
                 return Ok(Json(json_data));

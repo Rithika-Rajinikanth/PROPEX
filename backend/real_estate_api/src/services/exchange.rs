@@ -79,13 +79,12 @@ impl ExchangeService {
         match req.direction {
             OrderDirection::Buy => {
                 let required_funds = req.price_per_share_aed * Decimal::from(req.quantity);
-                let balance: (Decimal,) = sqlx::query_as(
-                    "SELECT wallet_balance_aed FROM users WHERE id = $1 FOR UPDATE",
-                )
-                .bind(user_id)
-                .fetch_one(&mut *tx)
-                .await
-                .map_err(|_| AppError::NotFound)?;
+                let balance: (Decimal,) =
+                    sqlx::query_as("SELECT wallet_balance_aed FROM users WHERE id = $1 FOR UPDATE")
+                        .bind(user_id)
+                        .fetch_one(&mut *tx)
+                        .await
+                        .map_err(|_| AppError::NotFound)?;
 
                 if balance.0 < required_funds {
                     return Err(AppError::BadRequest(format!(
@@ -194,7 +193,8 @@ impl ExchangeService {
             let match_qty = remaining_quantity.min(cand_available);
             let trade_price = cand_price; // Maker price rules
             let total_trade_amount = trade_price * Decimal::from(match_qty);
-            let platform_fee = total_trade_amount * Decimal::from_f64_retain(0.005).unwrap_or(Decimal::ZERO); // 0.5% fee
+            let platform_fee =
+                total_trade_amount * Decimal::from_f64_retain(0.005).unwrap_or(Decimal::ZERO); // 0.5% fee
 
             let (buyer_id, seller_id, buy_order_id, sell_order_id) = match req.direction {
                 OrderDirection::Buy => (user_id, cand_user_id, new_order_id, cand_id),
@@ -205,7 +205,11 @@ impl ExchangeService {
             let mut hasher = Sha256::new();
             hasher.update(format!(
                 "{}:{}:{}:{}:{}",
-                req.property_id, buyer_id, seller_id, total_trade_amount, Utc::now()
+                req.property_id,
+                buyer_id,
+                seller_id,
+                total_trade_amount,
+                Utc::now()
             ));
             let current_trade_hash = format!("{:x}", hasher.finalize());
 
@@ -236,7 +240,11 @@ impl ExchangeService {
 
             // Update candidate order filled amount and status
             let cand_new_filled = cand_filled + match_qty;
-            let cand_status = if cand_new_filled == cand_qty { "filled" } else { "partial" };
+            let cand_status = if cand_new_filled == cand_qty {
+                "filled"
+            } else {
+                "partial"
+            };
             sqlx::query("UPDATE order_book SET filled_quantity = $1, status = $2::order_state WHERE id = $3")
                 .bind(cand_new_filled)
                 .bind(cand_status)
@@ -246,11 +254,13 @@ impl ExchangeService {
                 .map_err(|e| AppError::Internal(format!("Failed to update matched order: {}", e)))?;
 
             // Transfer Funds in Wallet
-            sqlx::query("UPDATE users SET wallet_balance_aed = wallet_balance_aed - $1 WHERE id = $2")
-                .bind(total_trade_amount)
-                .bind(buyer_id)
-                .execute(&mut *tx)
-                .await?;
+            sqlx::query(
+                "UPDATE users SET wallet_balance_aed = wallet_balance_aed - $1 WHERE id = $2",
+            )
+            .bind(total_trade_amount)
+            .bind(buyer_id)
+            .execute(&mut *tx)
+            .await?;
 
             sqlx::query("UPDATE users SET wallet_balance_aed = wallet_balance_aed + ($1 - $2) WHERE id = $3")
                 .bind(total_trade_amount)
@@ -351,11 +361,13 @@ impl ExchangeService {
         .await
         .map_err(|e| AppError::Internal(format!("Failed to fetch bids: {}", e)))?
         .into_iter()
-        .map(|(price_aed, total_shares, order_count)| OrderBookDepthLevel {
-            price_aed,
-            total_shares: total_shares as i32,
-            order_count: order_count as i32,
-        })
+        .map(
+            |(price_aed, total_shares, order_count)| OrderBookDepthLevel {
+                price_aed,
+                total_shares: total_shares as i32,
+                order_count: order_count as i32,
+            },
+        )
         .collect::<Vec<_>>();
 
         let asks = sqlx::query_as::<_, (Decimal, i64, i64)>(
@@ -376,11 +388,13 @@ impl ExchangeService {
         .await
         .map_err(|e| AppError::Internal(format!("Failed to fetch asks: {}", e)))?
         .into_iter()
-        .map(|(price_aed, total_shares, order_count)| OrderBookDepthLevel {
-            price_aed,
-            total_shares: total_shares as i32,
-            order_count: order_count as i32,
-        })
+        .map(
+            |(price_aed, total_shares, order_count)| OrderBookDepthLevel {
+                price_aed,
+                total_shares: total_shares as i32,
+                order_count: order_count as i32,
+            },
+        )
         .collect::<Vec<_>>();
 
         let spread_aed = if !bids.is_empty() && !asks.is_empty() {
@@ -419,8 +433,9 @@ impl ExchangeService {
         let partition_rent = req
             .average_partition_rent_aed
             .unwrap_or_else(|| Decimal::from(3500)); // Default 3,500 AED/month per partition
-        
-        let additional_annual_revenue = partition_rent * Decimal::from(12) * Decimal::from(req.additional_partitions);
+
+        let additional_annual_revenue =
+            partition_rent * Decimal::from(12) * Decimal::from(req.additional_partitions);
         let simulated_gross = current_gross + additional_annual_revenue;
 
         let yield_increase_pct = if current_gross > Decimal::ZERO {
@@ -430,7 +445,8 @@ impl ExchangeService {
         };
 
         // Average drywall + soundproofing + permit renovation in Dubai is ~8,000 AED per partition
-        let estimated_renovation_cost = Decimal::from(8000) * Decimal::from(req.additional_partitions);
+        let estimated_renovation_cost =
+            Decimal::from(8000) * Decimal::from(req.additional_partitions);
         let monthly_additional_revenue = additional_annual_revenue / Decimal::from(12);
         let payback_months = if monthly_additional_revenue > Decimal::ZERO {
             estimated_renovation_cost / monthly_additional_revenue
@@ -453,11 +469,12 @@ impl ExchangeService {
         pool: &PgPool,
         user_id: Uuid,
     ) -> Result<UserPortfolioSummary, AppError> {
-        let wallet: (Decimal,) = sqlx::query_as("SELECT wallet_balance_aed FROM users WHERE id = $1")
-            .bind(user_id)
-            .fetch_one(pool)
-            .await
-            .map_err(|_| AppError::NotFound)?;
+        let wallet: (Decimal,) =
+            sqlx::query_as("SELECT wallet_balance_aed FROM users WHERE id = $1")
+                .bind(user_id)
+                .fetch_one(pool)
+                .await
+                .map_err(|_| AppError::NotFound)?;
 
         let shares = sqlx::query_as::<_, (Uuid, String, String, i32, Decimal, Decimal, Decimal)>(
             r#"

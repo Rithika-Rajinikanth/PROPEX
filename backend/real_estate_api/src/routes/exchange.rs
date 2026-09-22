@@ -17,9 +17,8 @@ use validator::Validate;
 use crate::{
     error::AppError,
     models::propx::{
-        CreateOrderRequest, OrderBookDepthResponse, OrderResponse,
-        PartitionSimulationRequest, PartitionSimulationResponse, Property,
-        UserPortfolioSummary,
+        CreateOrderRequest, OrderBookDepthResponse, OrderResponse, PartitionSimulationRequest,
+        PartitionSimulationResponse, Property, UserPortfolioSummary,
     },
     services::exchange::ExchangeService,
     AppState,
@@ -79,7 +78,10 @@ async fn handle_ws_socket(mut socket: WebSocket, state: Arc<AppState>, property_
             }
         }
     }
-    tracing::info!("🔌 WebSocket client disconnected for property {}", property_id);
+    tracing::info!(
+        "🔌 WebSocket client disconnected for property {}",
+        property_id
+    );
 }
 
 #[utoipa::path(
@@ -134,7 +136,8 @@ pub async fn place_order(
     let demo_user_id = Uuid::parse_str("11111111-1111-1111-1111-111111111111")
         .map_err(|e| AppError::Internal(e.to_string()))?;
 
-    let response = ExchangeService::place_and_match_order(state.db.pool(), demo_user_id, req).await?;
+    let response =
+        ExchangeService::place_and_match_order(state.db.pool(), demo_user_id, req).await?;
     Ok(Json(response))
 }
 

@@ -44,17 +44,18 @@ pub async fn health_check(
         _ => "disconnected",
     };
 
-    let redis_status = match timeout(Duration::from_millis(3000), state.redis.ping::<String>()).await {
-        Ok(Ok(_)) => "connected",
-        Ok(Err(e)) => {
-            tracing::warn!("Redis ping error: {}", e);
-            "disconnected"
-        },
-        Err(_) => {
-            tracing::warn!("Redis ping timeout after 3000ms");
-            "disconnected"
-        },
-    };
+    let redis_status =
+        match timeout(Duration::from_millis(3000), state.redis.ping::<String>()).await {
+            Ok(Ok(_)) => "connected",
+            Ok(Err(e)) => {
+                tracing::warn!("Redis ping error: {}", e);
+                "disconnected"
+            }
+            Err(_) => {
+                tracing::warn!("Redis ping timeout after 3000ms");
+                "disconnected"
+            }
+        };
 
     Ok(Json(HealthCheck {
         status: "ok".to_string(),

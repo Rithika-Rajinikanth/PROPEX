@@ -50,17 +50,20 @@ impl RagService {
     /// FIX 1: Returns Result instead of panicking when GROQ_API_KEY is missing.
     /// Callers (routes/ai.rs) should propagate the error via `?`.
     pub fn new(db: Database) -> Result<Self, AppError> {
-        let groq_key = std::env::var("GROQ_API_KEY")
-            .map_err(|_| AppError::Internal("GROQ_API_KEY environment variable not set".to_string()))?;
+        let groq_key = std::env::var("GROQ_API_KEY").map_err(|_| {
+            AppError::Internal("GROQ_API_KEY environment variable not set".to_string())
+        })?;
 
         if groq_key.is_empty() {
-            return Err(AppError::Internal("GROQ_API_KEY is set but empty".to_string()));
+            return Err(AppError::Internal(
+                "GROQ_API_KEY is set but empty".to_string(),
+            ));
         }
 
         // FIX 2: Read model from GROQ_MODEL env var (matches Azure container config).
         // Falls back to active Groq openai/gpt-oss-20b so nothing breaks if the var is missing.
-        let groq_model = std::env::var("GROQ_MODEL")
-            .unwrap_or_else(|_| "openai/gpt-oss-20b".to_string());
+        let groq_model =
+            std::env::var("GROQ_MODEL").unwrap_or_else(|_| "openai/gpt-oss-20b".to_string());
 
         tracing::info!("✅ RAG service initialized — model: {}", groq_model);
 
@@ -93,14 +96,38 @@ impl RagService {
         let query_lower = query.to_lowercase();
 
         let property_keywords = [
-            "house", "home", "property", "properties", "buy", "rent", "looking for",
-            "want", "find", "search", "show me", "need", "apartment", "condo",
-            "link", "links", "details", "bedroom",
+            "house",
+            "home",
+            "property",
+            "properties",
+            "buy",
+            "rent",
+            "looking for",
+            "want",
+            "find",
+            "search",
+            "show me",
+            "need",
+            "apartment",
+            "condo",
+            "link",
+            "links",
+            "details",
+            "bedroom",
         ];
 
         let market_keywords = [
-            "market", "trend", "hottest", "investment", "hot market", "expensive",
-            "cheap", "affordable", "analysis", "forecast", "prediction",
+            "market",
+            "trend",
+            "hottest",
+            "investment",
+            "hot market",
+            "expensive",
+            "cheap",
+            "affordable",
+            "analysis",
+            "forecast",
+            "prediction",
         ];
 
         if property_keywords.iter().any(|k| query_lower.contains(k)) {
@@ -187,21 +214,35 @@ impl RagService {
             if res.status().is_success() {
                 if let Ok(data) = res.json::<GroqResponse>().await {
                     if let Some(choice) = data.choices.first() {
-                        let json_str = choice.message.content.trim()
+                        let json_str = choice
+                            .message
+                            .content
+                            .trim()
                             .trim_start_matches("```json")
                             .trim_start_matches("```")
                             .trim_end_matches("```")
                             .trim();
                         if let Ok(ai_crit) = serde_json::from_str::<SearchCriteria>(json_str) {
-                            if ai_crit.location.is_some() { criteria.location = ai_crit.location; }
-                            if ai_crit.price_min.is_some() { criteria.price_min = ai_crit.price_min; }
-                            if ai_crit.price_max.is_some() { criteria.price_max = ai_crit.price_max; }
-                            if ai_crit.property_type.is_some() { criteria.property_type = ai_crit.property_type; }
+                            if ai_crit.location.is_some() {
+                                criteria.location = ai_crit.location;
+                            }
+                            if ai_crit.price_min.is_some() {
+                                criteria.price_min = ai_crit.price_min;
+                            }
+                            if ai_crit.price_max.is_some() {
+                                criteria.price_max = ai_crit.price_max;
+                            }
+                            if ai_crit.property_type.is_some() {
+                                criteria.property_type = ai_crit.property_type;
+                            }
                         }
                     }
                 }
             } else {
-                tracing::warn!("⚠️ Groq criteria extraction unavailable, using heuristic criteria: {:?}", criteria);
+                tracing::warn!(
+                    "⚠️ Groq criteria extraction unavailable, using heuristic criteria: {:?}",
+                    criteria
+                );
             }
         }
 
@@ -264,7 +305,7 @@ impl RagService {
                 3.5::FLOAT8 as affordability_ratio,
                 CURRENT_DATE as last_updated
              FROM properties
-             WHERE status::TEXT = 'verified_active'"
+             WHERE status::TEXT = 'verified_active'",
         );
 
         let mut loc_binding: Option<String> = None;
@@ -304,7 +345,7 @@ impl RagService {
                  FROM properties
                  WHERE status::TEXT = 'verified_active'
                  ORDER BY projected_net_yield_pct DESC
-                 LIMIT 10"
+                 LIMIT 10",
             )
             .fetch_all(self.db.pool())
             .await
@@ -345,7 +386,6 @@ impl RagService {
 
         if criteria.price_max.is_some() {
             query_str.push_str(&format!(" AND current_value <= ${}", param_index));
-            param_index += 1;
         }
 
         query_str.push_str(" ORDER BY heat_index DESC NULLS LAST LIMIT 10");
@@ -549,11 +589,7 @@ impl RagService {
         })
     }
 
-    async fn generate_response(
-        &self,
-        context: &str,
-        instruction: &str,
-    ) -> anyhow::Result<String> {
+    async fn generate_response(&self, context: &str, instruction: &str) -> anyhow::Result<String> {
         // FIX 5: Check status before deserializing
         let response = self
             .client
@@ -582,16 +618,16 @@ impl RagService {
             ));
         }
 
-        let data: GroqResponse = response.json().await.unwrap_or(GroqResponse { choices: vec![], error: None });
+        let data: GroqResponse = response.json().await.unwrap_or(GroqResponse {
+            choices: vec![],
+            error: None,
+        });
 
         match data.choices.first() {
             Some(choice) => Ok(choice.message.content.clone()),
             None => {
                 tracing::warn!("⚠️ Groq returned no choices — using formatted context");
-                Ok(format!(
-                    "Verified real estate telemetry:\n\n{}",
-                    context
-                ))
+                Ok(format!("Verified real estate telemetry:\n\n{}", context))
             }
         }
     }
@@ -645,7 +681,7 @@ impl RagService {
                  WHERE current_value IS NOT NULL
                  GROUP BY state_name
                  ORDER BY avg_heat DESC NULLS LAST
-                 LIMIT 5"
+                 LIMIT 5",
             )
             .fetch_all(self.db.pool())
             .await
@@ -663,7 +699,7 @@ impl RagService {
             .await
             .unwrap_or_default()
         };
-    
+
         let context = format!(
             "User asked: {}\n\nTop 5 hottest markets by heat index:\n{}",
             query,
@@ -720,7 +756,10 @@ impl RagService {
 
         if !response.status().is_success() {
             let status = response.status();
-            tracing::warn!("⚠️ Groq general chat status {} — activating PropX Dubai fallback", status);
+            tracing::warn!(
+                "⚠️ Groq general chat status {} — activating PropX Dubai fallback",
+                status
+            );
             return Ok(ChatResponse {
                 message: "Welcome to PropX Dubai Real Estate Exchange. You can search verified properties across Palm Jumeirah, Downtown, and Business Bay, view real-time CLOB order books, calculate drywall partitioning yields, and review DLD-backed tokenized assets.".to_string(),
                 suggestions: Some(vec![
@@ -731,12 +770,16 @@ impl RagService {
             });
         }
 
-        let data: GroqResponse = response.json().await.unwrap_or(GroqResponse { choices: vec![], error: None });
+        let data: GroqResponse = response.json().await.unwrap_or(GroqResponse {
+            choices: vec![],
+            error: None,
+        });
 
         let reply = match data.choices.first() {
             Some(c) => c.message.content.clone(),
             None => {
-                "Welcome to PropX Dubai. Search verified properties or check real-time order books.".to_string()
+                "Welcome to PropX Dubai. Search verified properties or check real-time order books."
+                    .to_string()
             }
         };
 

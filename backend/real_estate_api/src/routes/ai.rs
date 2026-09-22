@@ -1,5 +1,3 @@
-use axum::{extract::State, routing::post, Json, Router};
-use std::sync::Arc;
 use crate::services::rag::RagService;
 use crate::{
     error::AppError,
@@ -10,6 +8,8 @@ use crate::{
     services::recommendation::RecommendationService,
     AppState,
 };
+use axum::{extract::State, routing::post, Json, Router};
+use std::sync::Arc;
 
 pub fn routes() -> Router<Arc<AppState>> {
     Router::new()
@@ -55,13 +55,7 @@ pub async fn get_recommendations(
     let rec_service = RecommendationService::new(state.db.clone());
 
     let recommendations = rec_service
-        .generate_recommendations(
-            &1,
-            req.preferred_states,
-            req.budget_max,
-            req.priorities,
-            10,
-        )
+        .generate_recommendations(&1, req.preferred_states, req.budget_max, req.priorities, 10)
         .await?;
 
     Ok(Json(recommendations))
@@ -79,8 +73,9 @@ pub async fn predict_price(
     State(_state): State<Arc<AppState>>,
     Json(req): Json<PricePredictionRequest>,
 ) -> Result<Json<PricePredictionResponse>, AppError> {
-    let ml_url = std::env::var("ML_SERVICE_URL")
-        .unwrap_or_else(|_| "https://ml-service.salmonsky-439a40bf.eastasia.azurecontainerapps.io".to_string());
+    let ml_url = std::env::var("ML_SERVICE_URL").unwrap_or_else(|_| {
+        "https://ml-service.salmonsky-439a40bf.eastasia.azurecontainerapps.io".to_string()
+    });
 
     let client = reqwest::Client::new();
 
@@ -95,7 +90,10 @@ pub async fn predict_price(
     if !response.status().is_success() {
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
-        return Err(AppError::Internal(format!("ML service error {}: {}", status, body)));
+        return Err(AppError::Internal(format!(
+            "ML service error {}: {}",
+            status, body
+        )));
     }
 
     let prediction: PricePredictionResponse = response

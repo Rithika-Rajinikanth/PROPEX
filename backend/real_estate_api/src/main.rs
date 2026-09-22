@@ -1,12 +1,9 @@
 // src/main.rs
+#![allow(dead_code, unused_variables, unused_imports)]
 
 use axum::{routing::get, Router};
 use std::sync::Arc;
-use tower_http::{
-    catch_panic::CatchPanicLayer,
-    cors::CorsLayer,
-    trace::TraceLayer,
-};
+use tower_http::{catch_panic::CatchPanicLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
@@ -43,17 +40,17 @@ async fn main() -> anyhow::Result<()> {
     // (fred/Redis TLS) will use ring from this point forward.
     rustls::crypto::ring::default_provider()
         .install_default()
-        .expect("Failed to install ring as the default rustls CryptoProvider. \
+        .expect(
+            "Failed to install ring as the default rustls CryptoProvider. \
                  This means another provider was already installed, which should \
-                 not happen — check for duplicate rustls initialization.");
+                 not happen — check for duplicate rustls initialization.",
+        );
 
     // ── Logging ────────────────────────────────────────────────────────────
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| {
-                    "real_estate_api=debug,tower_http=debug,axum=trace".into()
-                }),
+                .unwrap_or_else(|_| "real_estate_api=debug,tower_http=debug,axum=trace".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -84,7 +81,10 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("🚀 Server running on http://{}", bind_addr);
     tracing::info!("📚 Swagger UI: http://{}/swagger-ui", bind_addr);
-    tracing::info!("📄 OpenAPI JSON: http://{}/api-docs/openapi.json", bind_addr);
+    tracing::info!(
+        "📄 OpenAPI JSON: http://{}/api-docs/openapi.json",
+        bind_addr
+    );
 
     axum::serve(listener, app).await?;
     Ok(())
@@ -100,14 +100,13 @@ pub struct AppState {
 fn create_router(state: Arc<AppState>) -> Router {
     let openapi = routes::openapi::create_openapi_spec();
 
-    let swagger_routes = utoipa_swagger_ui::SwaggerUi::new("/swagger-ui")
-        .url("/api-docs/openapi.json", openapi);
+    let swagger_routes =
+        utoipa_swagger_ui::SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi);
 
-    let user_routes = routes::user::routes()
-        .layer(axum::middleware::from_fn_with_state(
-            state.clone(),
-            middleware::auth::auth_middleware,
-        ));
+    let user_routes = routes::user::routes().layer(axum::middleware::from_fn_with_state(
+        state.clone(),
+        middleware::auth::auth_middleware,
+    ));
 
     let api_v1 = Router::new()
         .nest("/exchange", routes::exchange::routes())

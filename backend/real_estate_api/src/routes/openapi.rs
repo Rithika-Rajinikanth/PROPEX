@@ -50,7 +50,7 @@ use utoipa::OpenApi;
         (name = "auth", description = "Authentication endpoints"),
         (name = "ai", description = "AI-powered features"),
         (name = "analytics", description = "Market analytics"),
-        
+        (name = "exchange", description = "PropX CLOB Order Book and Fractional Exchange endpoints")
     )
 )]
 pub struct ApiDoc;

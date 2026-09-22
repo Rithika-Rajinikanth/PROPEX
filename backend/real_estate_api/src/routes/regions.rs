@@ -1,10 +1,18 @@
 // src/routes/regions.rs - FIXED
 
-use axum::{extract::{Path, Query, State}, routing::get, Json, Router};
+use axum::{
+    extract::{Path, Query, State},
+    routing::get,
+    Json, Router,
+};
 
+use crate::{
+    error::AppError,
+    models::{MarketTrend, Region, RegionMetrics},
+    AppState,
+};
 use serde::Deserialize;
 use std::sync::Arc;
-use crate::{error::AppError, models::{MarketTrend, Region, RegionMetrics}, AppState};
 
 #[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct RegionListQuery {
@@ -29,10 +37,15 @@ pub fn routes() -> Router<Arc<AppState>> {
 }
 
 #[utoipa::path(get, path = "/api/v1/regions", params(RegionListQuery), responses((status = 200, description = "List of regions", body = Vec<Region>)))]
-pub async fn list_regions(State(state): State<Arc<AppState>>, Query(params): Query<RegionListQuery>) -> Result<Json<Vec<Region>>, AppError> {
+pub async fn list_regions(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<RegionListQuery>,
+) -> Result<Json<Vec<Region>>, AppError> {
     let limit = params.limit.unwrap_or(100).min(1000);
     let offset = params.offset.unwrap_or(0);
-    let mut query = String::from("SELECT id, region_name, region_type, state_name, created_at FROM regions WHERE 1=1");
+    let mut query = String::from(
+        "SELECT id, region_name, region_type, state_name, created_at FROM regions WHERE 1=1",
+    );
     let mut bindings: Vec<String> = Vec::new();
     if let Some(state_filter) = params.state {
         query.push_str(&format!(" AND state_name = ${}", bindings.len() + 1));
@@ -42,33 +55,57 @@ pub async fn list_regions(State(state): State<Arc<AppState>>, Query(params): Que
         query.push_str(&format!(" AND region_type = ${}", bindings.len() + 1));
         bindings.push(region_type);
     }
-    query.push_str(&format!(" ORDER BY region_name LIMIT ${} OFFSET ${}", bindings.len() + 1, bindings.len() + 2));
+    query.push_str(&format!(
+        " ORDER BY region_name LIMIT ${} OFFSET ${}",
+        bindings.len() + 1,
+        bindings.len() + 2
+    ));
     let mut db_query = sqlx::query_as::<_, Region>(&query);
-    for binding in bindings { db_query = db_query.bind(binding); }
+    for binding in bindings {
+        db_query = db_query.bind(binding);
+    }
     db_query = db_query.bind(limit).bind(offset);
     Ok(Json(db_query.fetch_all(state.db.pool()).await?))
 }
 
 #[utoipa::path(get, path = "/api/v1/regions/{id}", params(("id" = i32, Path)), responses((status = 200, description = "Region details", body = Region)))]
-pub async fn get_region(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Result<Json<Region>, AppError> {
-    let region = sqlx::query_as::<_, Region>("SELECT id, region_name, region_type, state_name, created_at FROM regions WHERE id = $1")
-        .bind(id).fetch_optional(state.db.pool()).await?.ok_or(AppError::NotFound)?;
+pub async fn get_region(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+) -> Result<Json<Region>, AppError> {
+    let region = sqlx::query_as::<_, Region>(
+        "SELECT id, region_name, region_type, state_name, created_at FROM regions WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(state.db.pool())
+    .await?
+    .ok_or(AppError::NotFound)?;
     Ok(Json(region))
 }
 
 #[utoipa::path(get, path = "/api/v1/regions/{id}/metrics", params(("id" = i32, Path)), responses((status = 200, description = "Region metrics", body = RegionMetrics)))]
-pub async fn get_metrics(State(state): State<Arc<AppState>>, Path(id): Path<i32>) -> Result<Json<RegionMetrics>, AppError> {
+pub async fn get_metrics(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+) -> Result<Json<RegionMetrics>, AppError> {
     // ✅ FIX: Added region_type to SELECT — it was missing, causing FromRow to fail
     // and return nulls for all fields when the column count didn't match the struct.
     let metrics = sqlx::query_as::<_, RegionMetrics>(
         "SELECT region_id, region_name, state_name, region_type, current_value, median_list_price,
                 median_sale_price, inventory, new_listings, sales_count, days_to_pending,
                 days_to_close, heat_index, affordability_ratio, last_updated
-         FROM mv_region_latest_metrics WHERE region_id = $1")
-        .bind(id).fetch_optional(state.db.pool()).await?;
+         FROM mv_region_latest_metrics WHERE region_id = $1",
+    )
+    .bind(id)
+    .fetch_optional(state.db.pool())
+    .await?;
 
     let metrics = match metrics {
-        Some(m) if m.current_value.is_some() || m.median_list_price.is_some() || m.median_sale_price.is_some() => {
+        Some(m)
+            if m.current_value.is_some()
+                || m.median_list_price.is_some()
+                || m.median_sale_price.is_some() =>
+        {
             m
         }
         Some(m) => {
@@ -129,8 +166,12 @@ pub async fn get_metrics(State(state): State<Arc<AppState>>, Path(id): Path<i32>
 }
 
 #[utoipa::path(get, path = "/api/v1/regions/{id}/trends", params(("id" = i32, Path), TrendsQuery), responses((status = 200, description = "Historical trends", body = Vec<MarketTrend>)))]
-pub async fn get_trends(State(state): State<Arc<AppState>>, Path(id): Path<i32>, Query(params): Query<TrendsQuery>) -> Result<Json<Vec<MarketTrend>>, AppError> {
-    let months = params.months.unwrap_or(12).max(1).min(120);
+pub async fn get_trends(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<i32>,
+    Query(params): Query<TrendsQuery>,
+) -> Result<Json<Vec<MarketTrend>>, AppError> {
+    let months = params.months.unwrap_or(12).clamp(1, 120);
     let metric = params.metric.unwrap_or_else(|| "zhvi".to_string());
     let trends = match metric.as_str() {
         "zhvi" | "home_value" => sqlx::query_as::<_, MarketTrend>(

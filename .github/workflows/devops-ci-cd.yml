@@ -79,7 +79,7 @@ jobs:
           JWT_SECRET: test_secret_key_ci_cd_32chars_long_1234
         run: |
           cd backend/real_estate_api
-          cargo test --lib -- --nocapture
+          cargo test --bin real_estate_api -- --nocapture
 
       - name: Run Concurrency & Stress Tests
         run: |

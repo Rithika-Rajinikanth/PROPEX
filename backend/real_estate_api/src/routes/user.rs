@@ -1,10 +1,6 @@
 // src/routes/user.rs
 
-use axum::{
-    extract::State,
-    routing::get,
-    Json, Router,
-};
+use axum::{extract::State, routing::get, Json, Router};
 use std::sync::Arc;
 
 use crate::{

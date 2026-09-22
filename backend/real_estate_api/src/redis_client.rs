@@ -47,10 +47,15 @@ pub async fn create_redis_pool(redis_url: &str) -> Result<RedisPool, fred::error
             }
         }
         Ok(Err(e)) => {
-            tracing::warn!("⚠️ Redis connect error: {} — operating in PostgreSQL-direct fallback mode", e);
+            tracing::warn!(
+                "⚠️ Redis connect error: {} — operating in PostgreSQL-direct fallback mode",
+                e
+            );
         }
         Err(_) => {
-            tracing::warn!("⚠️ Redis connect timeout (1.5s) — operating in PostgreSQL-direct fallback mode");
+            tracing::warn!(
+                "⚠️ Redis connect timeout (1.5s) — operating in PostgreSQL-direct fallback mode"
+            );
         }
     }
 

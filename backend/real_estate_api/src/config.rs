@@ -29,8 +29,7 @@ impl Config {
             port: env::var("PORT")
                 .unwrap_or_else(|_| "3000".to_string())
                 .parse()?,
-            database_url: env::var("DATABASE_URL")
-                .expect("DATABASE_URL must be set"),
+            database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
             redis_url: env::var("REDIS_URL")
                 .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string()),
             jwt_secret: env::var("JWT_SECRET")

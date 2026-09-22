@@ -70,7 +70,7 @@ impl SearchQueryBuilder {
                 LEFT JOIN market_heat_index mh ON r.id = mh.region_id AND zh.date = mh.date
                 LEFT JOIN affordability_metrics af ON r.id = af.region_id AND zh.date = af.date
                 WHERE 1=1
-                "#
+                "#,
             ),
             conditions: Vec::new(),
             params: Vec::new(),
@@ -80,27 +80,32 @@ impl SearchQueryBuilder {
     }
 
     pub fn state(mut self, state: &str) -> Self {
-        self.conditions.push(format!("AND r.state_name ILIKE '%{}%'", state));
+        self.conditions
+            .push(format!("AND r.state_name ILIKE '%{}%'", state));
         self
     }
 
     pub fn region_name(mut self, name: &str) -> Self {
-        self.conditions.push(format!("AND r.region_name ILIKE '%{}%'", name));
+        self.conditions
+            .push(format!("AND r.region_name ILIKE '%{}%'", name));
         self
     }
 
     pub fn price_min(mut self, min: f64) -> Self {
-        self.conditions.push(format!("AND zh.zhvi_mid_tier >= {}", min));
+        self.conditions
+            .push(format!("AND zh.zhvi_mid_tier >= {}", min));
         self
     }
 
     pub fn price_max(mut self, max: f64) -> Self {
-        self.conditions.push(format!("AND zh.zhvi_mid_tier <= {}", max));
+        self.conditions
+            .push(format!("AND zh.zhvi_mid_tier <= {}", max));
         self
     }
 
     pub fn heat_index_min(mut self, min: f64) -> Self {
-        self.conditions.push(format!("AND mh.heat_index >= {}", min));
+        self.conditions
+            .push(format!("AND mh.heat_index >= {}", min));
         self
     }
 
@@ -116,7 +121,7 @@ impl SearchQueryBuilder {
 
     pub fn build(self) -> String {
         let mut query = self.base_query;
-        
+
         for condition in self.conditions {
             query.push_str(&format!(" {}", condition));
         }

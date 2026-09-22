@@ -44,17 +44,17 @@ pub struct ExternalDataService {
 
 impl ExternalDataService {
     pub fn new() -> Self {
-        let ml_service_url = std::env::var("ML_SERVICE_URL")
-            .unwrap_or_else(|_| "http://localhost:8000".to_string());
-        
+        let ml_service_url =
+            std::env::var("ML_SERVICE_URL").unwrap_or_else(|_| "http://localhost:8000".to_string());
+
         tracing::info!("🔌 External data service: {}", ml_service_url);
-        
+
         Self {
             client: Client::new(),
             ml_service_url,
         }
     }
-    
+
     /// Fetch combined external data
     pub async fn get_combined_data(
         &self,
@@ -62,8 +62,9 @@ impl ExternalDataService {
         state: &str,
     ) -> anyhow::Result<ExternalData> {
         tracing::debug!("Fetching external data for {} {}", region_name, state);
-        
-        let response = self.client
+
+        let response = self
+            .client
             .post(format!("{}/external/combined", self.ml_service_url))
             .json(&ExternalDataRequest {
                 region_name: region_name.to_string(),
@@ -72,24 +73,25 @@ impl ExternalDataService {
             .timeout(std::time::Duration::from_secs(30))
             .send()
             .await?;
-        
+
         if !response.status().is_success() {
             return Err(anyhow::anyhow!("External API error: {}", response.status()));
         }
-        
+
         let data: ExternalDataResponse = response.json().await?;
-        
+
         data.data
             .ok_or_else(|| anyhow::anyhow!("No external data available"))
     }
-    
+
     /// Fetch only Redfin data
     pub async fn get_redfin_data(
         &self,
         region_name: &str,
         state: &str,
     ) -> anyhow::Result<RedfinData> {
-        let response = self.client
+        let response = self
+            .client
             .post(format!("{}/external/redfin", self.ml_service_url))
             .json(&ExternalDataRequest {
                 region_name: region_name.to_string(),
@@ -98,15 +100,15 @@ impl ExternalDataService {
             .timeout(std::time::Duration::from_secs(30))
             .send()
             .await?;
-        
+
         #[derive(Deserialize)]
         struct Response {
             status: String,
             data: Option<RedfinData>,
         }
-        
+
         let data: Response = response.json().await?;
-        
+
         data.data
             .ok_or_else(|| anyhow::anyhow!("No Redfin data available"))
     }

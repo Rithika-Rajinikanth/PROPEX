@@ -23,15 +23,15 @@ pub struct RegionMetrics {
     pub region_name: String,
     pub state_name: String,
     pub region_type: Option<String>,
-    pub current_value: Option<f64>,      // FLOAT8 from view
-    pub median_list_price: Option<f64>,  // FLOAT8 from view
-    pub median_sale_price: Option<f64>,  // FLOAT8 from view
+    pub current_value: Option<f64>,       // FLOAT8 from view
+    pub median_list_price: Option<f64>,   // FLOAT8 from view
+    pub median_sale_price: Option<f64>,   // FLOAT8 from view
     pub inventory: Option<i32>,           // INTEGER
     pub new_listings: Option<i32>,        // INTEGER
     pub sales_count: Option<i32>,         // INTEGER
-    pub days_to_pending: Option<f64>,    // FLOAT8 from view
-    pub days_to_close: Option<f64>,      // FLOAT8 from view
-    pub heat_index: Option<f64>,         // FLOAT8 from view
+    pub days_to_pending: Option<f64>,     // FLOAT8 from view
+    pub days_to_close: Option<f64>,       // FLOAT8 from view
+    pub heat_index: Option<f64>,          // FLOAT8 from view
     pub affordability_ratio: Option<f64>, // FLOAT8 from view
     pub last_updated: Option<NaiveDate>,
 }
@@ -39,7 +39,7 @@ pub struct RegionMetrics {
 #[derive(Debug, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct MarketTrend {
     pub date: NaiveDate,
-    pub value: f64,  // FLOAT8 - no Decimal needed
+    pub value: f64, // FLOAT8 - no Decimal needed
     pub metric_type: String,
 }
 
@@ -53,8 +53,8 @@ pub struct SearchQuery {
     #[validate(range(min = 0.0))]
     pub price_max: Option<f64>,
     pub heat_index_min: Option<f64>,
-    #[validate(range(min = 0))]          // ← add this
-    pub inventory_min: Option<i64>, 
+    #[validate(range(min = 0))] // ← add this
+    pub inventory_min: Option<i64>,
     #[validate(range(min = 1, max = 100))]
     pub limit: Option<i64>,
     #[validate(range(min = 0))]
@@ -142,9 +142,9 @@ pub struct Claims {
 // ✅ FIX 2: Add utoipa::ToSchema derive macro
 #[derive(Debug, Serialize, Deserialize, FromRow, utoipa::ToSchema)]
 pub struct MarketTrendData {
-    pub date: NaiveDate,            // ✅ Changed from sqlx::types::time::Date
-    pub avg_value: f64,             // CAST(AVG(...) AS FLOAT8)
-    pub region_count: i64,          // COUNT(*)::BIGINT
+    pub date: NaiveDate,   // ✅ Changed from sqlx::types::time::Date
+    pub avg_value: f64,    // CAST(AVG(...) AS FLOAT8)
+    pub region_count: i64, // COUNT(*)::BIGINT
 }
 
 // ✅ FIX: Add utoipa::ToSchema derive macro
@@ -153,8 +153,8 @@ pub struct HeatmapData {
     pub region_id: i32,
     pub region_name: String,
     pub state_name: String,
-    pub heat_index: f64,        // CAST(... AS FLOAT8)
-    pub current_value: f64,     // CAST(... AS FLOAT8)
+    pub heat_index: f64,    // CAST(... AS FLOAT8)
+    pub current_value: f64, // CAST(... AS FLOAT8)
 }
 
 #[derive(Debug, Serialize, Deserialize, Validate, utoipa::ToSchema)]
