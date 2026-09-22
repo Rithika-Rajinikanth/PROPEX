@@ -7,7 +7,7 @@
 [![Redis](https://img.shields.io/badge/Redis-7.0+-DC382D.svg?logo=redis&logoColor=white)](https://redis.io/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-black.svg?logo=three.js&logoColor=white)](https://threejs.org/)
-[![DevOps 5/5](https://img.shields.io/badge/DevOps%20Reliability-5%2F5%20Passed-brightgreen.svg)](#-5-pillar-devops--reliability-scorecard)
+[![DevOps 5/5](https://img.shields.io/badge/DevOps%20Reliability-5%2F5%20Passed-brightgreen.svg)](#-5-pillar-devops--reliability-scorecard--benchmark-metrics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 
 > **PropX** is an institutional-grade, liquid fractional real estate exchange and spatial intelligence platform engineered for the Dubai luxury property market. By uniting a high-throughput **Continuous Limit Order Book (CLOB)** in Rust, **HNSW Approximate Nearest Neighbors (ANN)** vector indexing, an **On-Device Small Language Model (SLM)**, and an unsupervised **Multi-Model Title Deed Fraud Detection Suite**, PropX converts traditionally illiquid multimillion-dirham real estate assets into sub-millisecond tradable, legally verified financial instruments.
@@ -22,7 +22,7 @@
 4. [🤖 Dynamic Agent, MCP, RAG & Local SLM Orchestration Pipeline](#-dynamic-agent-mcp-rag--local-slm-orchestration-pipeline)
 5. [🧠 Algorithmic Deep Dives & Mathematical Formulations](#-algorithmic-deep-dives--mathematical-formulations)
    - [5.1 Continuous Limit Order Book (CLOB) & Price-Time FIFO Matching](#51-continuous-limit-order-book-clob--price-time-fifo-matching)
-   - [5.2 HNSW Vector Search ($O(\log N)$) vs Brute-Force KNN ($O(N)$)](#52-hnsw-vector-search-olog-n-vs-brute-force-knn-on)
+   - [5.2 HNSW Vector Search O(log N) vs Brute-Force KNN O(N)](#52-hnsw-vector-search-olog-n-vs-brute-force-knn-on)
    - [5.3 Deep Learning Title Deed Autoencoder (Reconstruction MSE Anomaly)](#53-deep-learning-title-deed-autoencoder-reconstruction-mse-anomaly)
    - [5.4 PatchGAN Localized Structural Discriminator](#54-patchgan-localized-structural-discriminator)
    - [5.5 Siamese Twin Biometric Verification & Arabic-English Transliteration](#55-siamese-twin-biometric-verification--arabic-english-transliteration)
@@ -62,32 +62,39 @@
 ### 🗺️ The 5 Heroic Quests of PropX
 
 ```mermaid
-journey
-    title The PropX Liquidity Odyssey — Interactive Journey
-    section Level 1: Illiquidity
-      Confront 30-day escrow barrier: 1: Player 1
-      Dodge 4% broker fee ambush: 2: Player 1
-    section Level 2: Forgery Dragon
-      Intercept forged Makani deed: 3: Player 1
-      Trigger 5-Layer Autoencoder MSE: 5: Autoencoder
-      Slay fake stamps with PatchGAN: 5: PatchGAN
-    section Level 3: The CLOB Coliseum
-      Enter 50-thread concurrent trading: 4: Player 1
-      Execute BTreeMap FIFO matching: 5: Rust CLOB
-      Verify zero double-spend in Postgres: 5: Row-Lock Guard
-    section Level 4: The AI Oracle
-      Summon MCP Agent & Local SLM: 5: Player 1
-      Traverse HNSW 384-dim vector graph: 5: HNSW Index
-      RAG Triad validates truthfulness: 5: Evaluator
-    section Level 5: Sovereign Settlement
-      Atomic T+0 DvP settlement complete: 5: Player 1
-      Mint fractional legal shares: 5: DLD Registry
+flowchart LR
+    subgraph Q1 ["🏜️ Quest 1: Illiquid Desert"]
+        direction TB
+        A1["30-Day Escrow Lock"] -->|PropX Fractions| A2["Instant T+0 Liquidity (AED 500)"]
+    end
+
+    subgraph Q2 ["🐉 Quest 2: Forgery Dragon"]
+        direction TB
+        B1["Spoofed Makani Deed"] -->|PyTorch Autoencoder| B2["MSE Error 0.9810 (Flagged)"]
+    end
+
+    subgraph Q3 ["⚡ Quest 3: CLOB Coliseum"]
+        direction TB
+        C1["50 Concurrent Orders"] -->|Rust BTreeMap FIFO| C2["Sub-ms Execution (0 Deadlocks)"]
+    end
+
+    subgraph Q4 ["🔮 Quest 4: The AI Oracle"]
+        direction TB
+        D1["Natural Language Query"] -->|MCP + Local SLM + HNSW| D2["0.82ms Vector Match ($0 Cost)"]
+    end
+
+    subgraph Q5 ["👑 Quest 5: Sovereign Settlement"]
+        direction TB
+        E1["Matched Trades"] -->|PostgreSQL Row Locks| E2["Atomic Balance Conservation"]
+    end
+
+    Q1 --> Q2 --> Q3 --> Q4 --> Q5
 ```
 
 - **🏜️ Quest 1: Escaping the Illiquid Desert**: Conventional buyers need AED 5,000,000 cash and wait 45 days for Dubai Land Department (DLD) transfer appointments. PropX shatters this into AED 500 fractional units with instant liquidity.
-- **🐉 Quest 2: Slaying the Forgery Dragon**: A malicious actor attempts to register a forged deed with modified Makani coordinates. The PropX Deep Autoencoder reconstructs the feature vector, records a colossal **$\text{MSE} = 0.9810$** (threshold $0.18$), and alerts the fraud sentinel before a single dirham moves.
-- **⚡ Quest 3: The High-Frequency CLOB Coliseum**: 50 institutional trading bots simultaneously place aggressive limit orders on Burj Crown fractions. Rust’s `Arc<RwLock>` and Postgres `SELECT ... FOR UPDATE` serialize execution in under $0.94\text{ms}$ with zero deadlocks.
-- **🔮 Quest 4: Consulting the AI Oracle**: Player asks: *"Find me beachfront hotel apartments in Palm Jumeirah with net rental yields above 8.5%."* The local SLM parses the constraints, HNSW graph jumps to Seven Palm in $0.82\text{ms}$, and RAG generates an audit-backed investment prospectus.
+- **🐉 Quest 2: Slaying the Forgery Dragon**: A malicious actor attempts to register a forged deed with modified Makani coordinates. The PropX Deep Autoencoder reconstructs the feature vector, records a colossal **MSE = 0.9810** (threshold 0.18), and alerts the fraud sentinel before a single dirham moves.
+- **⚡ Quest 3: The High-Frequency CLOB Coliseum**: 50 institutional trading bots simultaneously place aggressive limit orders on Burj Crown fractions. Rust's `Arc<RwLock>` and Postgres `SELECT ... FOR UPDATE` serialize execution in under 0.94ms with zero deadlocks.
+- **🔮 Quest 4: Consulting the AI Oracle**: Player asks: *"Find me beachfront hotel apartments in Palm Jumeirah with net rental yields above 8.5%."* The local SLM parses the constraints, HNSW graph jumps to Seven Palm in 0.82ms, and RAG generates an audit-backed investment prospectus.
 - **👑 Quest 5: Sovereign T+0 Settlement**: Dual-entry balance conservation confirms buyer funds and seller shares reconcile to the 12th decimal place. Trade hash is permanently signed.
 
 ---
@@ -139,13 +146,13 @@ The following sequence diagram illustrates the lifecycle of a fractional share o
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Investor as 👤 Institutional Investor
-    participant UI as 🖥️ Next.js 15 Client
-    participant Proxy as 🛡️ Reverse Proxy
-    participant Axum as 🦀 Rust Axum Engine
-    participant DB as 🐘 PostgreSQL 16 (Row Lock)
-    participant Redis as ⚡ Redis 7 Pub/Sub
-    participant ML as 🧠 Python ML (Fraud Sentinel)
+    actor Investor as Institutional Investor
+    participant UI as Next.js 15 Client
+    participant Proxy as Reverse Proxy
+    participant Axum as Rust Axum Engine
+    participant DB as PostgreSQL 16 (Row Lock)
+    participant Redis as Redis 7 Pub/Sub
+    participant ML as Python ML (Fraud Sentinel)
 
     Investor->>UI: Click "Buy 50 Shares @ 1005.00 AED" (Seven Palm)
     UI->>UI: Client Zod Validation (Quantity > 0, Funds > 0)
@@ -183,7 +190,7 @@ sequenceDiagram
     end
 
     par Real-Time Broadcast
-        Axum->>Redis: PUBLISH orderbook:updates {prop_id, new_depth, last_trade}
+        Axum->>Redis: PUBLISH orderbook:updates [prop_id, new_depth, last_trade]
         Redis->>Axum: Fanout to WebSocket Manager
         Axum-->>UI: WebSocket Broadcast (DepthChart & Ticker Update)
     and HTTP Response
@@ -202,37 +209,37 @@ PropX implements a hybrid **Model Context Protocol (MCP)** agent orchestration l
 ```mermaid
 flowchart TD
     subgraph Client ["Client Interface"]
-        UserQuery["💬 User Natural Language Query\n'Find high yield Palm Jumeirah studio under 500k AED'"]
+        UserQuery["User Natural Language Query\n'Find high yield Palm Jumeirah studio under 500k AED'"]
     end
 
     subgraph Orchestrator ["Agent & MCP Tool Router"]
-        Router{"🧭 Intent Router & MCP Registry"}
-        ToolANN["🔧 Tool: HNSW Semantic Vector Match"]
-        ToolFraud["🔧 Tool: Deed & Makani Fraud Audit"]
-        ToolYield["🔧 Tool: Spatial Partition Yield Simulator"]
-        ToolSignals["🔧 Tool: 12-Month Momentum Signals"]
+        Router{"Intent Router & MCP Registry"}
+        ToolANN["Tool: HNSW Semantic Vector Match"]
+        ToolFraud["Tool: Deed & Makani Fraud Audit"]
+        ToolYield["Tool: Spatial Partition Yield Simulator"]
+        ToolSignals["Tool: 12-Month Momentum Signals"]
     end
 
     subgraph LocalSLM ["Local Zero-Cloud SLM Engine ($0.00 Cost)"]
-        SLMParser["🧠 Regex-Augmented Semantic Slot Extractor\n• Location: 'Palm Jumeirah'\n• Price Max: 500,000 AED\n• Type: 'Studio Apartment'"]
-        SLMFallback["⚡ Instant Fallback Generation\n(Immune to Cloud API Outages)"]
+        SLMParser["Regex-Augmented Semantic Slot Extractor\n• Location: Palm Jumeirah\n• Price Max: 500,000 AED\n• Type: Studio Apartment"]
+        SLMFallback["Instant Fallback Generation\n(Immune to Cloud API Outages)"]
     end
 
     subgraph KnowledgeRetrieval ["RAG & Knowledge Base"]
-        HNSW["🌐 HNSW ANN Indexer (384-dim, M=16, ef=200)\nSub-ms Vector Graph Traversal"]
-        PostGIS["🗺️ PostGIS Geo-Spatial & Valuation Database\nActual Rental Yields & Service Charges"]
-        MakaniDB["🏛️ DLD Makani Registry & Title Deeds"]
+        HNSW["HNSW ANN Indexer (384-dim, M=16, ef=200)\nSub-ms Vector Graph Traversal"]
+        PostGIS["PostGIS Geo-Spatial & Valuation Database\nActual Rental Yields & Service Charges"]
+        MakaniDB["DLD Makani Registry & Title Deeds"]
     end
 
     subgraph RAGTriad ["RAG Triad Verification Harness"]
-        ContextRel["🎯 Context Relevance (>0.90)"]
-        Faithfulness["⚖️ Groundedness / Faithfulness (>0.92)"]
-        AnswerRel["💬 Answer Relevance (>0.90)"]
+        ContextRel["Context Relevance (>0.90)"]
+        Faithfulness["Groundedness / Faithfulness (>0.92)"]
+        AnswerRel["Answer Relevance (>0.90)"]
     end
 
     subgraph Synthesis ["Output Synthesis"]
-        LLMCloud["☁️ Primary LLM (Groq / Azure OSS 20B)"]
-        FinalPayload["📦 Verified Structured Prospectus + Action-Gated Buy Ticket"]
+        LLMCloud["Primary LLM (Groq / Azure OSS 20B)"]
+        FinalPayload["Verified Structured Prospectus + Action-Gated Buy Ticket"]
     end
 
     UserQuery --> Router
@@ -263,7 +270,7 @@ flowchart TD
 1. **User Query Ingestion**: The investor submits a natural language investment mandate.
 2. **Local SLM Parameter Extraction**: The local SLM parses constraints without dispatching expensive API requests to external clouds ($0.00 API expenditure, zero cloud latency).
 3. **MCP Tool Invocation**:
-   - `ann_search`: Traverses the 384-dimensional HNSW index in $0.82\text{ms}$.
+   - `ann_search`: Traverses the 384-dimensional HNSW index in 0.82ms.
    - `verify_deed`: Runs the autoencoder reconstruction check on the underlying Makani registry.
    - `calculate_yield`: Pulls DLD historical transactions and calculates net yield after service charges.
 4. **RAG Triad Verification**: Before the user sees the output, the response is scored for **Faithfulness** (no fabricated yields), **Context Relevance** (exact Palm Jumeirah assets), and **Answer Relevance**.
@@ -284,7 +291,10 @@ PropX operates a high-frequency, deterministic order matching engine written in 
 2. **Time Priority (FIFO)**:
    - For identical prices $P_1 = P_2$, the order placed at time $t_1 < t_2$ is matched first.
 3. **Double-Entry Balance Conservation**:
-   $$\sum_{u \in \text{Users}} \Delta \text{Balance}_u + \sum_{t \in \text{Trades}} (\text{Debit}_t - \text{Credit}_t) = 0$$
+
+$$
+\sum_{u \in \text{Users}} \Delta \text{Balance}_u + \sum_{t \in \text{Trades}} (\text{Debit}_t - \text{Credit}_t) = 0
+$$
 
 #### Data Structure & Lock Topology:
 ```rust
@@ -309,13 +319,16 @@ pub struct OrderBook {
 
 ---
 
-### 5.2 HNSW Vector Search ($O(\log N)$) vs Brute-Force KNN ($O(N)$)
+### 5.2 HNSW Vector Search O(log N) vs Brute-Force KNN O(N)
 
 To provide instant semantic discovery over thousands of property listings and investment criteria, PropX implements **Hierarchical Navigable Small World (HNSW)** graphs via `hnswlib`.
 
 #### Mathematical Formulation:
 Vectors $\mathbf{u}, \mathbf{v} \in \mathbb{R}^{384}$ represent dense document and asset embeddings. Distance is measured using **Cosine Similarity**:
-$$\text{CosSim}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2} = \frac{\sum_{i=1}^{384} u_i v_i}{\sqrt{\sum_{i=1}^{384} u_i^2} \sqrt{\sum_{i=1}^{384} v_i^2}}$$
+
+$$
+\text{CosSim}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\|\mathbf{u}\|_2 \|\mathbf{v}\|_2} = \frac{\sum_{i=1}^{384} u_i v_i}{\sqrt{\sum_{i=1}^{384} u_i^2} \sqrt{\sum_{i=1}^{384} v_i^2}}
+$$
 
 #### Complexity & Algorithmic Mechanics:
 ```
@@ -326,15 +339,23 @@ Layer 1 (Medium Skip):      [ Node A ] ──────► [ Node D ] ──�
 Layer 0 (Dense Base):       [ Node A ] ─► [ B ] ─► [ D ] ─► [ E ] ─► [ G ]
 ```
 - **Brute-Force KNN**: Evaluates distance against all $N$ elements:
-  $$\text{Time Complexity} = O(N \cdot D)$$
+
+$$
+\text{Time Complexity} = O(N \cdot D)
+$$
+
   At $N = 100,000$ and $D = 384$, a single query performs $38.4 \times 10^6$ floating point operations (~150ms).
 - **HNSW Graph Search**: Multi-layer skip-list graph traversal:
-  $$\text{Time Complexity} = O(\log N)$$
+
+$$
+\text{Time Complexity} = O(\log N)
+$$
+
   Hyperparameters configured in PropX:
   - $M = 16$: Maximum number of bi-directional connection links per node.
   - $ef_{\text{construction}} = 200$: Size of dynamic candidate list during graph construction.
   - $ef_{\text{search}} = 50$: Exploration trade-off parameter at query time.
-- **Measured Latency**: Warm query latency is **$0.82\text{ms}$**, delivering a **~25x to 400x speedup** over exhaustive matrix scans.
+- **Measured Latency**: Warm query latency is **0.82ms**, delivering a **~25x to 400x speedup** over exhaustive matrix scans.
 
 ---
 
@@ -366,10 +387,20 @@ Input Vector (x) ∈ ℝ³⁸⁴
 
 #### Objective Function:
 The network is trained exclusively on thousands of authentic Dubai Land Department title deeds to minimize reconstruction loss:
-$$\mathcal{L}_{\text{MSE}}(\mathbf{x}, \hat{\mathbf{x}}) = \frac{1}{384} \sum_{i=1}^{384} (x_i - \hat{x}_i)^2$$
+
+$$
+\mathcal{L}_{\text{MSE}}(\mathbf{x}, \hat{\mathbf{x}}) = \frac{1}{384} \sum_{i=1}^{384} (x_i - \hat{x}_i)^2
+$$
 
 #### Detection Criterion:
-$$\text{Status} = \begin{cases} \text{Authentic (Valid DLD Deed)}, & \text{if } \mathcal{L}_{\text{MSE}} < \tau \\ \text{Anomalous (Flagged / Forged)}, & \text{if } \mathcal{L}_{\text{MSE}} \ge \tau \end{cases}$$
+
+$$
+\text{Status} = \begin{cases} 
+\text{Authentic (Valid DLD Deed)}, & \text{if } \mathcal{L}_{\text{MSE}} < \tau \\ 
+\text{Anomalous (Flagged / Forged)}, & \text{if } \mathcal{L}_{\text{MSE}} \ge \tau 
+\end{cases}
+$$
+
 - Calibrated Decision Threshold: $\tau = 0.1800$
 - Authentic DLD Deed: $\text{MSE} \approx \mathbf{0.0043}$
 - Tampered / Forged Deed: $\text{MSE} \approx \mathbf{0.9810}$
@@ -383,7 +414,11 @@ Unlike global CNN classifiers that evaluate entire documents at once, PropX's `P
 
 #### Mathematical Formulation:
 Let $x_{\text{patch}}$ be an $N \times N$ localized window of an official title deed seal or government stamp. The PatchGAN discriminator outputs a matrix of predictions $D(x) \in \mathbb{R}^{M \times M}$:
-$$\mathcal{L}_{\text{PatchGAN}}(D) = \mathbb{E}_{x \sim p_{\text{real}}} [\log D(x)] + \mathbb{E}_{\tilde{x} \sim p_{\text{tampered}}} [\log (1 - D(\tilde{x}))]$$
+
+$$
+\mathcal{L}_{\text{PatchGAN}}(D) = \mathbb{E}_{x \sim p_{\text{real}}} [\log D(x)] + \mathbb{E}_{\tilde{x} \sim p_{\text{tampered}}} [\log (1 - D(\tilde{x}))]
+$$
+
 - High-frequency pixel perturbations from stamp alteration, Photoshop cloning, or digital signature splicing trigger sharp localized anomalies, leaving macro document elements unaffected.
 
 ---
@@ -394,16 +429,36 @@ To satisfy Dubai Land Department KYC/AML regulations, PropX matches the investor
 
 #### Mathematical Formulation:
 Given Emirates ID embedding $\mathbf{z}_1$ and live selfie embedding $\mathbf{z}_2 \in \mathbb{R}^{128}$:
-$$\text{Similarity}(\mathbf{z}_1, \mathbf{z}_2) = \frac{\mathbf{z}_1 \cdot \mathbf{z}_2}{\|\mathbf{z}_1\|_2 \|\mathbf{z}_2\|_2}$$
-$$\text{Verified} \iff \text{Similarity} \ge 0.80$$
+
+$$
+\text{Similarity}(\mathbf{z}_1, \mathbf{z}_2) = \frac{\mathbf{z}_1 \cdot \mathbf{z}_2}{\|\mathbf{z}_1\|_2 \|\mathbf{z}_2\|_2}
+$$
+
+$$
+\text{Verified} \iff \text{Similarity} \ge 0.80
+$$
+
 In production benchmarks, identical identities score **$\ge 0.9960$**, whereas distinct individuals score $<0.35$.
 
 #### Arabic-English Phonetic Transliteration Bridge:
 Official Arabic deeds use legal patronymics ("بن" / "آل") with variable English transliterations (e.g., *Mohammed*, *Mohammad*, *Mohd*). PropX combines:
 1. **Double Metaphone**: Computes primary and secondary phonetic keys.
 2. **Levenshtein Distance Metric**:
-   $$\operatorname{lev}(a, b) = \begin{cases} |a| & \text{if } |b| = 0, \\ |b| & \text{if } |a| = 0, \\ \operatorname{lev}(\operatorname{tail}(a), \operatorname{tail}(b)) & \text{if } a[0] = b[0], \\ 1 + \min \begin{cases} \operatorname{lev}(\operatorname{tail}(a), b) \\ \operatorname{lev}(a, \operatorname{tail}(b)) \\ \operatorname{lev}(\operatorname{tail}(a), \operatorname{tail}(b)) \end{cases} & \text{otherwise.} \end{cases}$$
-   Normalizes names like *"محمد بن راشد"* across international passport registries.
+
+$$
+\operatorname{lev}(a, b) = \begin{cases} 
+|a| & \text{if } |b| = 0, \\ 
+|b| & \text{if } |a| = 0, \\ 
+\operatorname{lev}(\operatorname{tail}(a), \operatorname{tail}(b)) & \text{if } a[0] = b[0], \\ 
+1 + \min \begin{cases} 
+\operatorname{lev}(\operatorname{tail}(a), b) \\ 
+\operatorname{lev}(a, \operatorname{tail}(b)) \\ 
+\operatorname{lev}(\operatorname{tail}(a), \operatorname{tail}(b)) 
+\end{cases} & \text{otherwise.} 
+\end{cases}
+$$
+
+Normalizes names like *"محمد بن راشد"* across international passport registries.
 
 ---
 
@@ -412,7 +467,7 @@ Official Arabic deeds use legal patronymics ("بن" / "آل") with variable Engl
 PropX embeds a dedicated `LocalSLMEngine` that runs deterministic, rule-augmented semantic slot parsing:
 - **Zero API Invocations**: Eliminates dependency on external APIs.
 - **$0.00 Operational Cost**: Runs locally on CPU/GPU without recurring token costs.
-- **Deterministic Regex-Slot Compaction**: Extracts price bounds, districts, bedrooms, and partition directives in under **$1.5\text{ms}$**.
+- **Deterministic Regex-Slot Compaction**: Extracts price bounds, districts, bedrooms, and partition directives in under **1.5ms**.
 
 ---
 
@@ -422,7 +477,11 @@ PropX renders interactive WebGL 3D architectural point clouds and meshes using T
 
 #### Partition Yield Boost Equation:
 When a luxury residential or commercial asset is partitioned into $P$ flexible micro-units (e.g., co-working or executive suites):
-$$\text{Net Yield}_{\text{partitioned}} = \frac{\sum_{k=1}^{P} \left( \text{GrossRent}_k \times \text{Occupancy}_k \right) - (\text{OPEX} + \text{ServiceCharge}_{\text{sqft}} \times \text{Area})}{\text{Valuation}_{\text{initial}} + \text{Capex}_{\text{partition}}} \times 100\%$$
+
+$$
+\text{Net Yield}_{\text{partitioned}} = \frac{\sum_{k=1}^{P} \left( \text{GrossRent}_k \times \text{Occupancy}_k \right) - (\text{OPEX} + \text{ServiceCharge}_{\text{sqft}} \times \text{Area})}{\text{Valuation}_{\text{initial}} + \text{Capex}_{\text{partition}}} \times 100\%
+$$
+
 - **Live Example**: A 3,500 sq.ft penthouse in Business Bay with a baseline yield of **6.2%** achieves **10.4%** net yield when partitioned into 4 high-demand corporate executive suites.
 
 ---
@@ -488,7 +547,7 @@ PROPEX DUBAI DEVOPS AND REAL-WORLD PRODUCTION RELIABILITY SUITE
   - Authentic DLD Deed (`DLD-2024-99881`): $\text{MSE} = \mathbf{0.0043}$ (Status: `verified_authentic`)
   - Tampered Deed (`FAKE-FORGED-99881`): $\text{MSE} = \mathbf{0.9810}$ (Status: `flagged_fraudulent`)
 - **Siamese Identity Verification**:
-  - Matching Twin Biometrics: Cosine Similarity = **$0.9964$** (Verified: `True`)
+  - Matching Twin Biometrics: Cosine Similarity = **0.9964** (Verified: `True`)
 
 ---
 
