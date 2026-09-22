@@ -12,11 +12,6 @@ RUN apt-get update && apt-get install -y \
 
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
-# Copy the sqlx offline cache — this is what allows building without a DB
-COPY .sqlx ./.sqlx
-
-# Skip live DB connection during compile — reads from .sqlx/ cache instead
-ENV SQLX_OFFLINE=true
 
 RUN cargo build --release
 
