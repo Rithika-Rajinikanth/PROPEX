@@ -12,7 +12,16 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
 
   images: {
-    domains: ["localhost"],
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+    ],
   },
 
   // rewrites() is intentionally minimal here.

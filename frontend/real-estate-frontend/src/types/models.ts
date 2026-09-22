@@ -61,9 +61,11 @@ export interface SearchResult {
 }
 
 export interface User {
-  id: number;
+  id: string | number;
   email: string;
   name?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AuthResponse {

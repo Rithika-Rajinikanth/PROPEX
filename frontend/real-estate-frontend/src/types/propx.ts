@@ -54,6 +54,10 @@ export interface PropXProperty {
   annual_gross_rent_aed: number;
   service_charge_per_sqft_aed: number;
   projected_net_yield_pct: number;
+  property_type?: string;
+  share_price_aed?: number;
+  rental_yield_pct?: number;
+  image_url?: string;
   created_at: string;
   updated_at: string;
   splat_url?: string;

@@ -9,15 +9,17 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   actionTitle?: string;
+  defaultTab?: 'login' | 'register' | string;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  actionTitle = 'Continue with PropX'
+  actionTitle = 'Continue with PropX',
+  defaultTab = 'login',
 }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(defaultTab === 'register' ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');

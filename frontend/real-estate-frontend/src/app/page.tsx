@@ -352,7 +352,7 @@ export default function HomePage() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <span className="text-xs font-mono text-slate-400 tracking-wider uppercase block mb-1">
-                            {property.property_type}
+                            {property.property_type || property.category}
                           </span>
                           <h3 className="font-serif text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors">
                             {property.title}
@@ -363,7 +363,7 @@ export default function HomePage() {
                         <div className="text-right shrink-0">
                           <span className="text-[10px] font-mono text-slate-400 block uppercase">Net APY</span>
                           <span className="text-lg sm:text-xl font-mono font-extrabold text-emerald-400">
-                            {Number(property.rental_yield_pct).toFixed(1)}%
+                            {Number(property.rental_yield_pct ?? property.projected_net_yield_pct ?? 0).toFixed(1)}%
                           </span>
                         </div>
                       </div>
@@ -391,7 +391,7 @@ export default function HomePage() {
                         <div>
                           <span className="text-[11px] font-mono text-slate-400 block">Share Price</span>
                           <span className="text-lg font-mono font-bold text-cyan-300">
-                            AED {Number(property.share_price_aed).toFixed(2)}
+                            AED {Number(property.share_price_aed ?? property.initial_share_price_aed ?? 0).toFixed(2)}
                           </span>
                         </div>
                         <div className="border-l border-white/10 pl-3">
